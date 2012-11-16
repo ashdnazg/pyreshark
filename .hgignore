@@ -1,0 +1,8 @@
+syntax: glob
+*.bat
+*.obj
+*.dll
+*.pdb
+*.exp
+*.lib
+*.res
