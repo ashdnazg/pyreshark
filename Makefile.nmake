@@ -45,7 +45,7 @@ $(PLUGIN_NAME).rc : moduleinfo.nmake
 
 $(PLUGIN_NAME).dll $(PLUGIN_NAME).exp $(PLUGIN_NAME).lib : $(OBJECTS) $(LINK_PLUGIN_WITH) $(RESOURCE)
 	link -dll /out:$(PLUGIN_NAME).dll $(LDFLAGS) $(OBJECTS) $(LINK_PLUGIN_WITH) \
-	$(GLIB_LIBS) $(RESOURCE) /LIBPATH:$(PYTHON_DIR)\libs
+	$(GLIB_LIBS) $(RESOURCE) /LIBPATH:$(PYTHON_DIR)\libs /DEF:$(PLUGIN_NAME).def
 
 #
 # Build plugin.c, which contains the plugin version[] string, a
