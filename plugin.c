@@ -8,6 +8,7 @@
 # include "config.h"
 #endif
 
+#include "pyreshark.h"
 #include <gmodule.h>
 
 #include "moduleinfo.h"
@@ -26,6 +27,6 @@ plugin_register (void)
 G_MODULE_EXPORT void
 plugin_reg_handoff(void)
 {
-
+    handoff_pyreshark();
 }
 #endif
