@@ -1,0 +1,25 @@
+General Information
+===================
+
+Pyreshark is a plugin for Wireshark with the purpose of allowing other plugins to be written with:
+1. Python
+2. Ease
+3. Efficiency
+
+The source code and some binaries can be found in http://code.google.com/p/pyreshark
+
+License
+=======
+Pyreshark is released under the GNU GPLv2 license. See <http://www.gnu.org/licenses/gpl-2.0.html> for details.
+
+Installation
+============
+Python 2.7.3 is required, so make sure it is installed
+
+Put pyreshark.dll in <Wireshark-Dir>\plugins\1.*.*\
+Put all files in the python folder in <Wireshark-Dir>\python. 
+
+The overall directory structure should be:
+<Wireshark-Dir>\python
+<Wireshark-Dir>\python\cal
+<Wireshark-Dir>\python\protocols
