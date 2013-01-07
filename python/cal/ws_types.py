@@ -3,7 +3,7 @@
 '''
 # ws_types.py
 #
-# Pyreshark Plugin for Wireshark. (https://github.com/pyreshark/PyreShark)
+# Pyreshark Plugin for Wireshark. (http://code.google.com/p/pyreshark)
 #
 # Copyright (c) 2013 by Eshed Shaham.
 #

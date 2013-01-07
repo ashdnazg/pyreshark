@@ -8,3 +8,4 @@ syntax: glob
 *.res
 *.rc
 *.pyc
+dist\*
