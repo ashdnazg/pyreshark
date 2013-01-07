@@ -43,7 +43,7 @@ class Protocol(ProtocolBase):
                                                             "target_ip" : FieldItem("dst.proto_ipv4", FT_IPv4, "Target IP Address"),
                                                           })
                        ]
-        self._register_under = { "ethertype": 0x0806}
+        #self._register_under = { "ethertype": 0x0806} # UNCOMMENT THIS TO TEST THE PROTOCOL
 
     def add_addresses(self, packet):
         (hw_type, proto_type, hw_size, proto_size) = packet.unpack(">HHBB", 0)
