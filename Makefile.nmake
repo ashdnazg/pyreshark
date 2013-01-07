@@ -1,8 +1,5 @@
 # Makefile.nmake
-# nmake file for Wireshark plugin
-#
-# $Id: Makefile.nmake 42971 2012-06-01 14:08:12Z wmeier $
-#
+# nmake file for Pyreshark plugin
 
 include ..\..\config.nmake
 include moduleinfo.nmake
