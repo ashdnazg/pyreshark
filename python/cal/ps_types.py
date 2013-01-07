@@ -1,11 +1,19 @@
-from ctypes import *
-from ws_types import *
+'''
+@summary: Declares the counterpatrts to the structures defined in pyreshark.h
+'''
 
-PSdissect_func = CFUNCTYPE(None, POINTER(WStvbuff), c_size_t, c_size_t, POINTER(c_int), c_size_t)
+from ctypes import CFUNCTYPE, POINTER, Structure, c_int, c_void_p, c_char_p
+from ws_types import WStvbuff, WSproto_node, WSpacket_info
+
+class PStvbuff_and_tree(Structure):
+    _fields_ = [("tvb", POINTER(WStvbuff)),
+                ("tree", POINTER(WSproto_node))]
+
+PSdissect_func = CFUNCTYPE(None, POINTER(PStvbuff_and_tree), POINTER(WSpacket_info), POINTER(c_int), c_void_p)
 
 class PSdissection_node(Structure):
-    _fields_ = [("func", PSdissect_func),
-                ("params", c_size_t)]
+    _fields_ = [("func", c_void_p),
+                ("params", c_void_p)]
 
 class PSpy_dissector(Structure):
     _fields_ = [("dissection_chain", POINTER(POINTER(PSdissection_node))),

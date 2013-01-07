@@ -1,3 +1,11 @@
 EXPORTS
 dissect_pyreshark
 register_dissectors_array
+add_tree_item
+add_text_item
+call_next_dissector
+get_pointer
+push_tree
+pop_tree
+advance_offset
+set_column_text

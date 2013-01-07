@@ -32,3 +32,5 @@ DISSECTOR_SRC = \
 
 # corresponding headers
 DISSECTOR_INCLUDES =	\
+    pyreshark.h \
+    param_structs.h \
