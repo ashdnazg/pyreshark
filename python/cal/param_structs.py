@@ -1,5 +1,5 @@
 '''
-@dummary: Declares all the ctypes Param Strcutures. See param_structs.h for the C versions.
+@summary: Declares all the ctypes Param Strcutures. See param_structs.h for the C versions.
 '''
 # param_structs.py
 #
