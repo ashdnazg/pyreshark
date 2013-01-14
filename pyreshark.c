@@ -179,8 +179,9 @@ set_column_text(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset,
 
 void call_next_dissector(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, call_next_dissector_params_t *params)
 {
-    call_dissector(find_dissector(*(params->name)), tvb_new_subset_remaining(tvb_and_tree->tvb, *p_offset), pinfo, tvb_and_tree->tree);
+    char *temp_name = *(params->name);
     *(params->name) = params->default_name;
+    call_dissector(find_dissector(temp_name), tvb_new_subset_remaining(tvb_and_tree->tvb, *p_offset), pinfo, tvb_and_tree->tree);
 }
 
 void *
