@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, pointer, addressof, CDLL
+from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast
 from ps_types import PSdissection_node, PSpy_dissector
 
 PSLIBNAME = "pyreshark"
@@ -44,8 +44,7 @@ class CAL(object):
             p_params = None
         else:
             p_params = addressof(params)
-        
-        return pointer(PSdissection_node(self.pslib.get_pointer(func), p_params))
+        return pointer(PSdissection_node(c_void_p.from_address(addressof(func)).value, p_params))
         
     def create_chain(self, node_list):
         '''
