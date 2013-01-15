@@ -184,12 +184,6 @@ void call_next_dissector(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *
     call_dissector(find_dissector(temp_name), tvb_new_subset_remaining(tvb_and_tree->tvb, *p_offset), pinfo, tvb_and_tree->tree);
 }
 
-void *
-get_pointer(void *callback)
-{
-    return callback;
-}
-
 guint32
 get_uint_value(tvbuff_t *tvb, gint offset, gint length, const guint encoding)
 {

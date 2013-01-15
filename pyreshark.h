@@ -141,12 +141,6 @@ void call_next_dissector(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *
 */
 guint32 get_uint_value(tvbuff_t *tvb, gint offset, gint length, const guint encoding);
 
-/**
-    A daft hack so python can treat C and Python callabacks to dissection functions the same.
-    The function just returns the value it recieves.
-*/
-void * get_pointer(void *callback);
-
 #ifdef __cplusplus
 }
 #endif
