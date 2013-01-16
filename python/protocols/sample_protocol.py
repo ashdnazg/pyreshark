@@ -37,34 +37,23 @@ class Protocol(ProtocolBase):
                        FieldItem("hw.size", FT_UINT8, "Hardware Size"),
                        FieldItem("proto.size", FT_UINT8, "Protocol Size"),
                        FieldItem("opcode", FT_UINT16, "Opcode"),
-                       PyFunctionItem(self.add_addresses, { "sender_mac" : FieldItem("src.hw_mac", FT_ETHER, "Sender MAC Address"),
-                                                            "target_mac" : FieldItem("dst.hw_mac", FT_ETHER, "Target MAC Address"),
-                                                            "sender_ip" : FieldItem("src.proto_ipv4", FT_IPv4, "Sender IP Address"),
-                                                            "target_ip" : FieldItem("dst.proto_ipv4", FT_IPv4, "Target IP Address"),
-                                                          })
+                       Subtree(TextItem("src", "Sender"), [PyFunctionItem(self.add_addresses, { "mac" : FieldItem("hw_mac", FT_ETHER, "Sender MAC Address"),
+                                                                                                "ip" : FieldItem("proto_ipv4", FT_IPv4, "Sender IP Address"),})]),
+                       Subtree(TextItem("dst", "Target"), [PyFunctionItem(self.add_addresses, { "mac" : FieldItem("hw_mac", FT_ETHER, "Target MAC Address"),
+                                                                                                "ip" : FieldItem("proto_ipv4", FT_IPv4, "Target IP Address"),})]),
                        ]
         #self._register_under = { "ethertype": 0x0806} # UNCOMMENT THIS TO TEST THE PROTOCOL
 
     def add_addresses(self, packet):
         (hw_type, proto_type, hw_size, proto_size) = packet.unpack(">HHBB", 0)
         if hw_type == ETHERNET:
-            packet.read_item("sender_mac")
+            packet.read_item("mac")
         else:
             packet.add_text("Unimplemented hardware type")
             packet.offset += hw_size
         
         if proto_type == IP:
-            packet.read_item("sender_ip")
+            packet.read_item("ip")
         else:
             packet.add_text("Unimplemented protocol type")
-            packet.offset += proto_size
-        
-        if hw_type == ETHERNET:
-            packet.read_item("target_mac")
-        else:
-            packet.offset += hw_size
-        
-        if proto_type == IP:
-            packet.read_item("target_ip")
-        else:
             packet.offset += proto_size
