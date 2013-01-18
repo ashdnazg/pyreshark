@@ -70,7 +70,7 @@ typedef struct py_dissector_s {
     Initializes Python and executes pyreshark.py (which eventually registers all python protocols).
     Called when pyreshark registers protocols
 */
-void init_pyreshark();
+void init_pyreshark(void);
 
 /**
     Registers the python dissectors for later use in 'dissect_pyreshark'.
@@ -80,7 +80,7 @@ void register_dissectors_array(int num_dissectors, py_dissector_t ** dissector_a
 /** 
     Tells the python code to handoff its protocols.
 */
-void handoff_pyreshark();
+void handoff_pyreshark(void);
 
 /**
     Pyreshark's dissection function shared between all python protocols.
@@ -102,32 +102,32 @@ void dissect_proto(py_dissector_t * dissector_array, tvbuff_t *tvb, packet_info 
 /**
     Adds an item to the tree.
 */
-void add_tree_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, add_tree_item_params_t *params);
+void add_tree_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, add_tree_item_params_t *params);
 
 /**
     Adds a line of text to the tree.
 */
-void add_text_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, add_text_item_params_t *params);
+void add_text_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, add_text_item_params_t *params);
 
 /**
     Creates a new subtree.
 */
-void push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, push_tree_params_t *params);
+void push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, push_tree_params_t *params);
 
 /**
     Goes up one level in the tree.
 */
-void pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, pop_tree_params_t *params);
+void pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pop_tree_params_t *params);
 
 /**
     Advances the current offset.
 */
-void advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, advance_offset_params_t *params);
+void advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, advance_offset_params_t *params);
 
 /**
     Sets the text of a specified column.
 */
-void set_column_text(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, set_column_text_params_t *params);
+void set_column_text(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *p_offset _U_, set_column_text_params_t *params);
 
 /**
     Calls the next dissector.

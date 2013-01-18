@@ -28,9 +28,9 @@ PLUGIN_NAME = pyreshark
 
 # the dissector sources (without any helpers)
 DISSECTOR_SRC = \
-	pyreshark.c \
+	pyreshark.c 
 
 # corresponding headers
 DISSECTOR_INCLUDES =	\
     pyreshark.h \
-    param_structs.h \
+    param_structs.h 
