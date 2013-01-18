@@ -50,7 +50,7 @@ class PyreShark(object):
         '''
         self._protocols = []
         self._cal = cal.CAL()
-        protocol_files = glob(os.path.join("%s" % (PROTOCOLS_DIR,), ".py"))
+        protocol_files = glob(os.path.join("%s" % (PROTOCOLS_DIR,), "*.py"))
         
         for p_file in protocol_files:
             proto_module = __import__(p_file.replace("%s%s" % (PROTOCOLS_DIR, os.path.sep), "").replace(".py", ""))
