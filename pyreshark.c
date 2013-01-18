@@ -40,11 +40,9 @@
 int g_num_dissectors = 0;
 py_dissector_t ** g_dissectors = NULL;
 
-static gint proto_dummy_pyreshark = -1; 
-
 
 void
-init_pyreshark()
+init_pyreshark(void)
 {
     char * py_init_path;
     char * python_cmd;
@@ -57,7 +55,7 @@ init_pyreshark()
     g_free(python_cmd);
     
     py_init_path = get_datafile_path(PYTHON_DIR G_DIR_SEPARATOR_S PYRESHARK_INIT_FILE);
-    py_init_file = PyFile_FromString(py_init_path, "rb");
+    py_init_file = PyFile_FromString((char *)py_init_path, "rb");
     
 
     if (NULL == py_init_file) 
@@ -75,7 +73,7 @@ init_pyreshark()
 
 
 void
-handoff_pyreshark()
+handoff_pyreshark(void)
 {
     PyRun_SimpleString("g_pyreshark.handoff()");
 }
@@ -125,19 +123,19 @@ register_dissectors_array(int num_dissectors, py_dissector_t ** dissectors_array
 
 
 void
-add_tree_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, add_tree_item_params_t *params)
+add_tree_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, add_tree_item_params_t *params)
 {
     params->out_item = proto_tree_add_item(tvb_and_tree->tree, *(params->p_hf_index), tvb_and_tree->tvb, *p_offset, params->length, params->encoding);
 }
 
 void
-add_text_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, add_text_item_params_t *params)
+add_text_item(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, add_text_item_params_t *params)
 {
-    params->out_item = proto_tree_add_none_format(tvb_and_tree->tree, *(params->p_hf_index), tvb_and_tree->tvb, *p_offset, params->length, params->text);
+    params->out_item = proto_tree_add_none_format(tvb_and_tree->tree, *(params->p_hf_index), tvb_and_tree->tvb, *p_offset, params->length, "%s", params->text);
 }
 
 void
-push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, push_tree_params_t *params)
+push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, push_tree_params_t *params)
 {
     if (tvb_and_tree->tree)
     {
@@ -148,7 +146,7 @@ push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, push_
 }
 
 void
-pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, pop_tree_params_t *params)
+pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pop_tree_params_t *params)
 {
     if (tvb_and_tree->tree)
     {
@@ -158,7 +156,7 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, pop_tr
 }
 
 void 
-advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, advance_offset_params_t *params)
+advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_ , int *p_offset, advance_offset_params_t *params)
 {
     if (params->encoding & ENC_READ_LENGTH) 
     {
@@ -169,7 +167,7 @@ advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, 
 }
 
 void
-set_column_text(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, set_column_text_params_t *params)
+set_column_text(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *p_offset _U_, set_column_text_params_t *params)
 {
     if (check_col(pinfo->cinfo, params->col_id))
     {

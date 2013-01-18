@@ -31,8 +31,8 @@ PROTOCOLS_DIR = os.path.join(PYRESHARK_DIR, "protocols")
 
 # The following is to handle the situation where the user doesn't have enough privileges to open the logs.
 try:
-    sys.stdout = open("%s\\out.log" % sys.path[-1],"wb")
-    sys.stderr = open("%s\\err.log" % sys.path[-1],"wb")
+    sys.stdout = open(os.path.join("%s" % (sys.path[-1],),"out.log") ,"wb")
+    sys.stderr = open(os.path.join("%s" % (sys.path[-1],),"err.log") ,"wb")
 except:
     pass
 
@@ -50,10 +50,10 @@ class PyreShark(object):
         '''
         self._protocols = []
         self._cal = cal.CAL()
-        protocol_files = glob("%s\\*.py" % (PROTOCOLS_DIR,))
+        protocol_files = glob(os.path.join("%s" % (PROTOCOLS_DIR,), ".py"))
         
         for p_file in protocol_files:
-            proto_module = __import__(p_file.replace("%s\\" % (PROTOCOLS_DIR,), "").replace(".py", ""))
+            proto_module = __import__(p_file.replace("%s%s" % (PROTOCOLS_DIR, os.path.sep), "").replace(".py", ""))
             self._protocols.append(proto_module.Protocol())
         
         self._cal.register_protocols(self._protocols)
