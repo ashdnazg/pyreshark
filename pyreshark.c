@@ -66,7 +66,8 @@ init_pyreshark(void)
     }
     g_free(py_init_path);
 
-    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE);
+    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE);
+    
     Py_DECREF(py_init_file);
     
 }
