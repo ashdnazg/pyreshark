@@ -8,4 +8,11 @@ syntax: glob
 *.res
 *.rc
 *.pyc
+*.la
+*.lo
 dist\*
+dist/*
+.deps/*
+.libs/*
+Makefile
+Makefile.in

@@ -23,15 +23,17 @@
 
 from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast
 from ps_types import PSdissection_node, PSpy_dissector
+import platform
 
-PSLIBNAME = "pyreshark"
-WSLIBNAME = "libwireshark"
+PSLIBNAME_DICT = {"Windows" : "pyreshark.dll", "Linux" : "pyreshark.so"}
+WSLIBNAME_DICT = {"Windows" : "libwireshark.dll", "Linux" : "libwireshark.so"}
 
 class CAL(object):
     
     def __init__(self):
-        self.pslib = CDLL(PSLIBNAME)
-        self.wslib = CDLL(WSLIBNAME)
+        system = platform.system()
+        self.pslib = CDLL(PSLIBNAME_DICT[system])
+        self.wslib = CDLL(WSLIBNAME_DICT[system])
        
     def create_dissection_node(self, func, params):
         '''

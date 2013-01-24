@@ -55,7 +55,7 @@ init_pyreshark(void)
     g_free(python_cmd);
     
     py_init_path = get_datafile_path(PYTHON_DIR G_DIR_SEPARATOR_S PYRESHARK_INIT_FILE);
-    py_init_file = PyFile_FromString((char *)py_init_path, "rb");
+    py_init_file = PyFile_FromString((char *)py_init_path, (char *)"rb");
     
 
     if (NULL == py_init_file) 
@@ -66,7 +66,8 @@ init_pyreshark(void)
     }
     g_free(py_init_path);
 
-    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE);
+    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE);
+    
     Py_DECREF(py_init_file);
     
 }
