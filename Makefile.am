@@ -70,9 +70,7 @@ install-data-am: install-pluginLTLIBRARIES install-python
 install-python:
 	$(MKDIR_P) $(datadir)/wireshark
 	cp -fR python $(datadir)/wireshark/
-	$(PYTHON) -m compileall $(pythondir)
 	chmod -R a+r $(pythondir)
-	chmod -R a+w $(pythondir)
 	
 
 checkapi:
