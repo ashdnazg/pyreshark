@@ -183,8 +183,8 @@ class DissectorItem(ItemBase):
     def __init__(self, name, length = REMAINING_LENGTH):
         '''
         @summary: A constructor.
-        @param name: A pointer to the index of a registered field.
-        @param name: The name of this item.
+        @param name: A protocol's name
+        @param length: The number of bytes to be dissected.
         '''
         self._dissector_name = c_char_p(name)
         self._length = c_int(length)
@@ -213,6 +213,7 @@ class OffsetItem(ItemBase):
         '''
         @summary: A constructor.
         @param length: Number of bbytes by which to advance the offset.
+        @param encoding: one of ENC_ relevant for whether it's big endian or little endian. 
         @param flags: Any of OFFSET_FLAGS_*, Useful for length preceded fields.
         '''
         self._params = PSadvance_offset_params(length, encoding, flags)
