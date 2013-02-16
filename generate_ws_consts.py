@@ -62,6 +62,7 @@ else:
 HFILL = (0, 0, 0, 0, None, None)
 
 DATA = "data"
+REMAINING_LENGTH = -1
 """
 
 def get_enum(file_name, enum_name):

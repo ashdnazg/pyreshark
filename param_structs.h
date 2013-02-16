@@ -30,6 +30,8 @@ extern "C" {
 #include <epan/packet.h>
 #include <epan/proto.h>
 
+#include "pyreshark.h"
+
 typedef struct add_tree_item_params_s {
     int *p_hf_index;
     gint length;
@@ -55,10 +57,20 @@ typedef struct pop_tree_params_s {
     int *p_start_offset;
 } pop_tree_params_t;
 
+
+typedef enum offset_flags_e {
+    OFFSET_FLAGS_NONE,                       //Don't read the length from the packet
+    OFFSET_FLAGS_READ_LENGTH,                //The value of the length field doesn't include its own bytes.
+    OFFSET_FLAGS_READ_LENGTH_INCLUDING,      //The value of the length field includes both its own bytes and the data bytes.
+} offset_flags_t;
+
 typedef struct advance_offset_params_s {
     int length;
-    int encoding;
+    guint encoding;
+    offset_flags_t flags;
 } advance_offset_params_t;
+
+
 
 typedef struct set_column_text_params_s {
     int col_id;
@@ -67,7 +79,9 @@ typedef struct set_column_text_params_s {
 
 typedef struct call_next_dissector_params_s {
     char **name;
+    gint *length;
     char *default_name;
+    gint default_length;
 } call_next_dissector_params_t;
 
 

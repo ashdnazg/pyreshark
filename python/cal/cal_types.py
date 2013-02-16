@@ -26,8 +26,8 @@ from struct import unpack, calcsize
 from ps_types import PStvbuff_and_tree, PSdissect_func
 from ws_types import WSheader_field_info, WShf_register_info
 from param_structs import PSadd_tree_item_params, PSadd_text_item_params, PSpush_tree_params, PSpop_tree_params, PSadvance_offset_params, PSset_column_text_params, PScall_next_dissector_params
-from cal_consts import ENC_READ_LENGTH, TOP_TREE, DEFAULT_TREE, AUTO_TREE, NO_MASK, FIELD_TYPES_DICT, NEW_INDEX
-from ws_consts import HFILL, COL_PROTOCOL, ENC_NA, FT_NONE, DATA
+from cal_consts import ENC_READ_LENGTH, TOP_TREE, DEFAULT_TREE, AUTO_TREE, NO_MASK, FIELD_TYPES_DICT, NEW_INDEX, OFFSET_FLAGS_READ_LENGTH, OFFSET_FLAGS_NONE
+from ws_consts import HFILL, COL_PROTOCOL, ENC_BIG_ENDIAN, ENC_NA, FT_NONE, DATA, REMAINING_LENGTH
 
 
 class ItemBase(object):
@@ -98,6 +98,9 @@ class ProtocolBase(object):
         if not hasattr(self, "_filter_name"):
             self._filter_name = self._name.lower().replace(" ","")
         
+        if not hasattr(self, "_hidden"):
+            self._hidden = False
+        
         self._cal = cal
         
         self.trees_dict = {TOP_TREE : c_int(NEW_INDEX)}
@@ -113,8 +116,10 @@ class ProtocolBase(object):
         self._top_tree.register_proto(self)
         
         if not hasattr(self, "_next_dissector"):
-            self._default_next_dissector = c_char_p(DATA)
-            self._next_dissector = c_char_p(DATA)
+            self._next_dissector = DissectorItem(DATA, REMAINING_LENGTH)
+        
+        self._next_dissector.register_cal(cal)
+        self._next_dissector.register_proto(self)
         
         trees_array_type = POINTER(c_int) * len(self.trees_dict)
         self._trees_index_array = trees_array_type(*[pointer(tree_index) for tree_index in self.trees_dict.values()])
@@ -143,22 +148,82 @@ class ProtocolBase(object):
         func can be either a C dissect_func_t or a PSdissect_func.
         params can be either the appropriate params' structure for func or None if there isn't one.
         '''
-        self._node_list = [(self._cal.pslib.set_column_text, PSset_column_text_params(COL_PROTOCOL, self._short_name))] + \
-                          self._top_tree.get_node_list() + \
-                          [(self._cal.pslib.call_next_dissector, PScall_next_dissector_params(pointer(self._next_dissector), self._default_next_dissector))]
+        
+        if self._hidden:
+            temp_nodes_list = []
+            for item in self._items:
+                temp_nodes_list.extend(item.get_node_list())
+        else:
+            temp_nodes_list = [(self._cal.pslib.set_column_text, PSset_column_text_params(COL_PROTOCOL, self._short_name))] + \
+                                self._top_tree.get_node_list()
+            
+        self._node_list = temp_nodes_list + self._next_dissector.get_node_list()
         return self._node_list
         
-    def set_next_dissector(self, name):
+    
+    
+    def set_next_dissector(self, name, length = REMAINING_LENGTH):
         '''
         @summary: Changes which dissector will be called after the current.
         @param name: A protocol's name
+        @param length: The number of bytes to be dissected.
         '''
-        if not hasattr(self, "_default_next_dissector"):
-            self._default_next_dissector = c_char_p(name)
-            self._next_dissector = c_char_p(name)
+        if not hasattr(self, "_next_dissector"):
+            self._next_dissector = DissectorItem(name, length)
         else:
-            self._next_dissector.value = name
+            self._next_dissector.set(name, length)
                 
+
+                
+                
+class DissectorItem(ItemBase):
+    '''
+    @summary: An item for calling other dissectors.
+    '''
+    def __init__(self, name, length = REMAINING_LENGTH):
+        '''
+        @summary: A constructor.
+        @param name: A pointer to the index of a registered field.
+        @param name: The name of this item.
+        '''
+        self._dissector_name = c_char_p(name)
+        self._length = c_int(length)
+        self._params = PScall_next_dissector_params(pointer(self._dissector_name), pointer(self._length), name, length)
+    
+    def set(self, name, length = REMAINING_LENGTH):
+        '''
+        @summary: Changes which dissector will be called next time this item is invoked.
+        @param name: A protocol's name
+        @param length: The number of bytes to be dissected.
+        '''
+        self._dissector_name.value = name
+        self._length.value = length
+    
+    def get_node_list(self):
+        '''
+        @summary: See ItemBase
+        '''
+        return [(self._cal.pslib.call_next_dissector, self._params)]
+                
+class OffsetItem(ItemBase):
+    '''
+    @summary: An item for advancing the offset.
+    '''
+    def __init__(self, length, encoding = ENC_BIG_ENDIAN, flags = OFFSET_FLAGS_NONE):
+        '''
+        @summary: A constructor.
+        @param length: Number of bbytes by which to advance the offset.
+        @param flags: Any of OFFSET_FLAGS_*, Useful for length preceded fields.
+        '''
+        self._params = PSadvance_offset_params(length, encoding, flags)
+        
+    def get_node_list(self):
+        '''
+        @summary: See ItemBase
+        '''
+        return [(self._cal.pslib.advance_offset, self._params)]
+
+        
 class GeneralItem(ItemBase):
     '''
     @summary: An item for an already registered field. Useful for the protocol item.
@@ -218,11 +283,12 @@ class FieldItem(ItemBase):
             _display = display
             
         if encoding is None:
-            _offset_encoding = FIELD_TYPES_DICT[field_type].default_encoding
+            _encoding = FIELD_TYPES_DICT[field_type].default_encoding
         else:
-            _offset_encoding = encoding
-            
-        _encoding = _offset_encoding ^ (_offset_encoding & ENC_READ_LENGTH)
+            _encoding = encoding
+        
+        
+        _offset_flags = FIELD_TYPES_DICT[field_type].offset_flags
         
         if length is None:
             _length = FIELD_TYPES_DICT[field_type].default_length
@@ -234,7 +300,7 @@ class FieldItem(ItemBase):
         self._params = PSadd_tree_item_params(pointer(self._index), _length, _encoding, None)
         
         self.pointer = self._params.out_item
-        self._offset_params = PSadvance_offset_params(_length, _offset_encoding)
+        self._offset_params = PSadvance_offset_params(_length, _encoding, _offset_flags)
         
     def generate_filter_name(self, prefix):
         '''
@@ -394,6 +460,9 @@ class Packet(object):
         self.p_new_tree = p_tree
         self.buffer = self._init_buffer(p_tvb)
         self._items_dict = items_dict
+        
+        self.id = self._p_pinfo.contents.fd.contents.num
+        self.visited = self._p_pinfo.contents.fd.contents.flags.visited
         
     def _init_buffer(self, p_tvb):
         '''

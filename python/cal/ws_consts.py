@@ -139,3 +139,4 @@ else:
 HFILL = (0, 0, 0, 0, None, None)
 
 DATA = "data"
+REMAINING_LENGTH = -1

@@ -47,7 +47,8 @@ class PSpop_tree_params(Structure):
     
 class PSadvance_offset_params(Structure):
     _fields_ = [("length", c_int),
-                ("encoding", c_int)]
+                ("encoding", c_int),
+                ("flags", c_int),]
                 
 class PSset_column_text_params(Structure):
     _fields_ = [("col_id", c_int),
@@ -55,4 +56,6 @@ class PSset_column_text_params(Structure):
                 
 class PScall_next_dissector_params(Structure):
     _fields_ = [("name", POINTER(c_char_p)),
-                ("default_name", c_char_p)]
+                ("length", POINTER(c_int)),        #-1 for all remaining bytes. 
+                ("default_name", c_char_p),
+                ("default_length", c_int)]
