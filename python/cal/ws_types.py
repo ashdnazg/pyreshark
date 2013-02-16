@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, Structure, Union, c_int, c_uint, c_uint8, c_ubyte, c_uint16, c_uint32, c_uint64, c_size_t, c_void_p, c_int32, c_char_p, c_double
+from ctypes import POINTER, Structure, Union, c_int, c_uint, c_uint8, c_ubyte, c_uint16, c_uint32, c_uint64, c_size_t, c_void_p, c_int32, c_char_p, c_double, c_int64, c_int16
 
 class WStvb_backing(Structure):
     pass
@@ -38,6 +38,12 @@ class WStvbuff(Structure):
 class WSaddress(Structure):
     pass
 
+class WSframe_data(Structure):
+    pass
+    
+class WSframe_data_flags(Structure):
+    pass
+    
 class WSpacket_info(Structure):
     pass
     
@@ -78,7 +84,9 @@ class WSproto_node(Structure):
     pass
 
     
-    
+WSns_time._fields_ = [("secs", c_int), # Should work on most systems
+                      ("nsecs", c_int)]
+                      
 WStvb_backing._fields_ = [("tvb", POINTER(WStvbuff)),
                           ("offset", c_int),
                           ("length", c_int)]
@@ -107,10 +115,41 @@ WStvbuff._fields_ = [("next", POINTER(WStvbuff)),
 WSaddress._fields_ = [("type", c_uint),
                       ("len", c_int),
                       ("data", c_void_p)]
+
+
+WSframe_data_flags._fields_ = [("passed_dfilter"         ,c_uint, 1),
+                               ("dependent_of_displayed" ,c_uint, 1),
+                               ("encoding"               ,c_uint, 2),
+                               ("visited"                ,c_uint, 1),
+                               ("marked"                 ,c_uint, 1),
+                               ("ref_time"               ,c_uint, 1),
+                               ("ignored"                ,c_uint, 1),
+                               ("has_ts"                 ,c_uint, 1),
+                               ("has_if_id"              ,c_uint, 1)]
+                               
+                               
+WSframe_data._fields_ = [("pfd", c_void_p),
+                         ("num", c_uint32),
+                         ("interface_id", c_uint32),
+                         ("pkt_len", c_uint32),
+                         ("cap_len", c_uint32),
+                         ("cum_bytes", c_uint32),
+                         ("file_off", c_int64),
+                         ("subnum", c_uint16),
+                         ("lnk_t", c_int16),
+                         ("flags", WSframe_data_flags),
+                         ("color_filter", c_void_p),
+                         ("abs_ts", WSns_time),
+                         ("shift_offset", WSns_time),
+                         ("rel_ts", WSns_time),
+                         ("del_dis_ts", WSns_time),
+                         ("del_cap_ts", WSns_time),
+                         ("opt_comment", c_char_p)]
+
                       
 WSpacket_info._fields_ = [("current_proto", c_char_p),
                           ("cinfo", c_void_p),   # Column info
-                          ("fd", c_void_p), # Frame data
+                          ("fd", POINTER(WSframe_data)), # Frame data
                           ("pseudo_header", c_void_p),
                           ("data_src", c_void_p),
                           ("dl_src", WSaddress),
@@ -147,8 +186,7 @@ WSe_guid._fields_ = [("data1", c_uint32),
                      ("data3", c_uint16),
                      ("data4", 8*c_uint8)]
                      
-WSns_time._fields_ = [("secs", c_int), # Should work on most systems
-                      ("nsecs", c_int)]
+
                       
 WSipv4_addr._fields_ = [("addr", c_uint32),
                         ("nmask", c_uint32)]

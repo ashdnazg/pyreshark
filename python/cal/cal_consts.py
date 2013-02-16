@@ -30,11 +30,17 @@ AUTO_TREE = "_auto"
 NO_MASK = 0
 NEW_INDEX = -1
 
+OFFSET_FLAGS_NONE = 0 #Don't read the length from the packet
+OFFSET_FLAGS_READ_LENGTH = 1 #The value of the length field doesn't include its own bytes.
+OFFSET_FLAGS_READ_LENGTH_INCLUDING = 2 #The value of the length field includes both its own bytes and the data bytes.
+
+
 class FieldType(object):
-    def __init__(self, default_length, default_display, default_encoding):
+    def __init__(self, default_length, default_display, default_encoding, offset_flags = OFFSET_FLAGS_NONE):
         self.default_length = default_length
         self.default_display = default_display
         self.default_encoding = default_encoding
+        self.offset_flags = offset_flags
         
         
 FIELD_TYPES_DICT = {FT_NONE: FieldType(0, BASE_NONE, ENC_NA),
@@ -55,9 +61,9 @@ FIELD_TYPES_DICT = {FT_NONE: FieldType(0, BASE_NONE, ENC_NA),
                     FT_RELATIVE_TIME: FieldType(4, ABSOLUTE_TIME_LOCAL, ENC_TIME_TIMESPEC),
                     FT_STRING: FieldType(1, BASE_NONE, ENC_TEXT_DEFAULT),
                     FT_STRINGZ: FieldType(-1, BASE_NONE, ENC_TEXT_DEFAULT),
-                    FT_UINT_STRING: FieldType(1, BASE_NONE, ENC_READ_LENGTH | ENC_TEXT_DEFAULT | ENC_BIG_ENDIAN),
+                    FT_UINT_STRING: FieldType(1, BASE_NONE, ENC_TEXT_DEFAULT | ENC_BIG_ENDIAN, OFFSET_FLAGS_READ_LENGTH),
                     FT_BYTES: FieldType(1, BASE_NONE, ENC_NA),
-                    FT_UINT_BYTES: FieldType(1, BASE_NONE, ENC_READ_LENGTH | ENC_NA | ENC_BIG_ENDIAN),
+                    FT_UINT_BYTES: FieldType(1, BASE_NONE, ENC_NA | ENC_BIG_ENDIAN, OFFSET_FLAGS_READ_LENGTH),
                     FT_IPv4: FieldType(4, BASE_NONE, ENC_BIG_ENDIAN),
                     FT_IPv6: FieldType(16, BASE_NONE, ENC_BIG_ENDIAN),
                     FT_ETHER: FieldType(6, BASE_NONE, ENC_BIG_ENDIAN),

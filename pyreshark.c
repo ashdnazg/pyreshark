@@ -66,8 +66,7 @@ init_pyreshark(void)
     }
     g_free(py_init_path);
 
-    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE);
-    
+    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE);
     Py_DECREF(py_init_file);
     
 }
@@ -159,10 +158,12 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, po
 void 
 advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_ , int *p_offset, advance_offset_params_t *params)
 {
-    if (params->encoding & ENC_READ_LENGTH) 
+    if (params->flags == OFFSET_FLAGS_READ_LENGTH || params->flags == OFFSET_FLAGS_READ_LENGTH_INCLUDING) 
     {
-        *p_offset += params->length + get_uint_value(tvb_and_tree->tvb, *p_offset, params->length, params->encoding ^ ENC_READ_LENGTH);
-    } else {
+        *p_offset += get_uint_value(tvb_and_tree->tvb, *p_offset, params->length, params->encoding);
+    }
+    if (params->flags == OFFSET_FLAGS_NONE || params->flags == OFFSET_FLAGS_READ_LENGTH) 
+    {
         *p_offset += params->length;
     }
 }
@@ -179,8 +180,10 @@ set_column_text(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *p_off
 void call_next_dissector(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, call_next_dissector_params_t *params)
 {
     char *temp_name = *(params->name);
+    gint temp_length = *(params->length);
     *(params->name) = params->default_name;
-    call_dissector(find_dissector(temp_name), tvb_new_subset_remaining(tvb_and_tree->tvb, *p_offset), pinfo, tvb_and_tree->tree);
+    *(params->length) = params->default_length;
+    call_dissector(find_dissector(temp_name), tvb_new_subset(tvb_and_tree->tvb, *p_offset, temp_length, temp_length), pinfo, tvb_and_tree->tree);
 }
 
 guint32

@@ -34,10 +34,11 @@ extern "C" {
 #define PYTHON_DIR "python"
 #define PYRESHARK_INIT_FILE "pyreshark.py"
 
+
+
 /**
     Used to identify FT_UINT_BYTES and FT_UINT_STRING, or any other future length preceded value.
 */
-#define ENC_READ_LENGTH 0x00010000
 
 typedef struct tvb_and_tree_s {
     tvbuff_t *tvb;
