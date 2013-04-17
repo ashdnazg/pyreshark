@@ -397,6 +397,24 @@ class Subtree(ItemBase):
         
     def get_child_items(self):
         return self._subitems[1:]
+
+class ColumnItem(ItemBase):
+    '''
+    @summary: Changes the text of a column
+    '''
+    def __init__(self, col_id, text):
+        '''
+        @summary: A constructor.
+        @param col_id: The column's id (any COL_* from ws_consts.py).
+        @param text: The new text of the column.
+        '''
+        self._params = PSset_column_text_params(col_id, text)
+    
+    def get_node_list(self):   
+        '''
+        @summary: See ItemBase.
+        '''
+        return [(self._cal.pslib.set_column_text, self._params)]
         
 
 class PyFunctionItem(ItemBase):
@@ -487,7 +505,17 @@ class Packet(object):
         else:
             _offset = offset
         self._cal.wslib.proto_tree_add_text(self.p_new_tree, self.p_new_tvb, _offset, length, text)
+    
+    def set_column_text(self, col_id, text):
+        '''
+        @summary: Sets a column's text.
+        @param col_id: The column's id (any COL_* from ws_consts.py).
+        @param text: The new text of the column.
+        '''
         
+        #offset and tvb_and_tree passed as zero and None respectively, since it doesn't really matter
+        self._cal.pslib.set_column_text(None, self._p_pinfo, 0, pointer(PSset_column_text_params(col_id, text)))
+    
     def read_item(self, item_key):
         '''
         @summary: Reads an item from the items dictionary passed to PyFunctionItem, adds it to the tree and advances the offset.
