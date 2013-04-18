@@ -256,9 +256,6 @@ WStrue_false_string._fields_ = [("true_string", c_char_p),
 WSvalue_string._fields_ = [("value", c_int32),
                            ("str", c_char_p)]
                            
-WSstring_string._fields_ = [("value", c_char_p),
-                            ("str", c_char_p)]
-                            
 WSrange_string._fields_= [("value_min", c_int32),
                           ("value_max", c_int32),
                           ("str", c_char_p)]
