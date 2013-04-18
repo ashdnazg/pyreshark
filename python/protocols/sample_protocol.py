@@ -27,16 +27,24 @@ from cal.ws_consts import FT_UINT16, BASE_HEX, FT_UINT8, FT_ETHER, FT_IPv4
 ETHERNET = 1
 IP = 0x0800
 
+ARPOP_REQUEST = 1
+ARPOP_REPLY = 2
+
+HW_TYPE_STRINGS = {ETHERNET : "Ethernet"}
+PROTO_TYPE_STRINGS = {IP : "IP"}
+OPCODE_STRINGS =   {ARPOP_REQUEST:  "request",
+                    ARPOP_REPLY:    "reply"}
+
 class Protocol(ProtocolBase):
     def __init__(self):
         self._name = "Pyreshark Sample Protocol (ARP)"
         self._filter_name = "pysample"
         self._short_name = "PYSAMPLE"
-        self._items = [FieldItem("hw.type", FT_UINT16, "Hardware Type"),
-                       FieldItem("proto.type", FT_UINT16, "Protocol Type", display = BASE_HEX),
+        self._items = [FieldItem("hw.type", FT_UINT16, "Hardware Type", strings = HW_TYPE_STRINGS),
+                       FieldItem("proto.type", FT_UINT16, "Protocol Type", display = BASE_HEX, strings = PROTO_TYPE_STRINGS),
                        FieldItem("hw.size", FT_UINT8, "Hardware Size"),
                        FieldItem("proto.size", FT_UINT8, "Protocol Size"),
-                       FieldItem("opcode", FT_UINT16, "Opcode"),
+                       FieldItem("opcode", FT_UINT16, "Opcode", strings = OPCODE_STRINGS),
                        Subtree(TextItem("src", "Sender"), [PyFunctionItem(self.add_addresses, { "mac" : FieldItem("hw_mac", FT_ETHER, "Sender MAC Address"),
                                                                                                 "ip" : FieldItem("proto_ipv4", FT_IPv4, "Sender IP Address"),})]),
                        Subtree(TextItem("dst", "Target"), [PyFunctionItem(self.add_addresses, { "mac" : FieldItem("hw_mac", FT_ETHER, "Target MAC Address"),

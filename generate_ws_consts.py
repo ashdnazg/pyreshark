@@ -48,7 +48,8 @@ DEFINE_FILE_NAME = 0
 DEFINE_PREFIX = 1
 DEFINE_CAPTION = 2
 
-DEFINES = [(os.path.join("..","..","epan","proto.h"), "ENC_", "ENCODINGS")]
+DEFINES = [(os.path.join("..","..","epan","proto.h"), "enc_", "ENCODINGS"),
+           (os.path.join("..","..","epan","proto.h"), "base_","DISPLAY VALUES (MORE)")]
 
 MISC_CAPTION = "MISC"
 MISC = """
@@ -110,7 +111,7 @@ def get_define(file_name, define_prefix):
     
     line = in_file.readline()
     while line != "":
-        if line.strip().lower().startswith(DEFINE) and define_prefix in line:
+        if line.strip().lower().startswith(DEFINE) and line.strip().lower().replace(DEFINE,"").strip().startswith(define_prefix):
             entry = line.split("/")[0].strip()[len(DEFINE):].strip().replace("\t", " ")
             space_position = entry.index(" ")
             all_values.append((entry[:space_position].strip(), entry[space_position:].strip()))
