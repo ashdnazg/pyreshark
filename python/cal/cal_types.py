@@ -212,7 +212,7 @@ class OffsetItem(ItemBase):
     def __init__(self, length, encoding = ENC_BIG_ENDIAN, flags = OFFSET_FLAGS_NONE):
         '''
         @summary: A constructor.
-        @param length: Number of bbytes by which to advance the offset.
+        @param length: Number of bytes by which to advance the offset.
         @param encoding: one of ENC_ relevant for whether it's big endian or little endian. 
         @param flags: Any of OFFSET_FLAGS_*, Useful for length preceded fields.
         '''
@@ -262,7 +262,7 @@ class FieldItem(ItemBase):
         @param encoding: Encoding for reading the field. See ws_consts.py. If it is set to None, a default encoding is picked from FIELD_TYPES_DICT in cal_consts.py. (default: None)
         @param mask: Bit mask. (default: NO_MASK=0)
         @param display: How the field's value will be displayed in the tree. See ws_consts.py. If it is set to None, a default display is picked from FIELD_TYPES_DICT in cal_consts.py. (default: None)
-        @param strings: A dictionary for translating the field's value into text. For boolean fields use True and False as keys, for integers use either the values directly or tuples of (min, max) - not both at the same dictionary! 
+        @param strings: A dictionary for translating the field's value into text. For boolean fields use True and False as keys, for integers use either the values directly or tuples of (min, max) - not both at the same dictionary! (default: None)
         @param length: Length of the field in bytes. If it is set to None, a default length is picked from FIELD_TYPES_DICT in cal_consts.py. (default: None)
         '''
         
