@@ -25,6 +25,11 @@ Don't import this, as it relies on sys being already imported in the C code
 import os.path
 from glob import glob
 
+for directory in sys.path:
+    if os.path.realpath(directory) == os.path.realpath("."):
+        sys.path.remove(directory)
+        break
+
 PYRESHARK_DIR = sys.path[-1]
 PROTOCOLS_DIR = os.path.join(PYRESHARK_DIR, "protocols")
 

@@ -24,10 +24,10 @@
 from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p
 from struct import unpack, calcsize
 from ps_types import PStvbuff_and_tree, PSdissect_func
-from ws_types import WSheader_field_info, WShf_register_info
+from ws_types import WSheader_field_info, WShf_register_info, WSvalue_string, WStrue_false_string, WSrange_string
 from param_structs import PSadd_tree_item_params, PSadd_text_item_params, PSpush_tree_params, PSpop_tree_params, PSadvance_offset_params, PSset_column_text_params, PScall_next_dissector_params
 from cal_consts import ENC_READ_LENGTH, TOP_TREE, DEFAULT_TREE, AUTO_TREE, NO_MASK, FIELD_TYPES_DICT, NEW_INDEX, OFFSET_FLAGS_READ_LENGTH, OFFSET_FLAGS_NONE
-from ws_consts import HFILL, COL_PROTOCOL, ENC_BIG_ENDIAN, ENC_NA, FT_NONE, DATA, REMAINING_LENGTH
+from ws_consts import HFILL, COL_PROTOCOL, ENC_BIG_ENDIAN, ENC_NA, FT_NONE, DATA, REMAINING_LENGTH, BASE_RANGE_STRING
 
 
 class ItemBase(object):
@@ -68,7 +68,7 @@ class ItemBase(object):
     def get_node_list(self):
         '''
         @summary: Returns the node list for the dissection of the item.
-        @return A list of tuples of the form (func, params).
+        @return: A list of tuples of the form (func, params).
         func can be either a C dissect_func_t or a PSdissect_func.
         params can be either the appropriate params' structure for func or None if there isn't one.
         '''
@@ -144,7 +144,7 @@ class ProtocolBase(object):
     def get_node_list(self):
         '''
         @summary: Constructs the node list fro the dissection of this protocol according to its items.
-        @return A list of tuples of the form (func, params).
+        @return: A list of tuples of the form (func, params).
         func can be either a C dissect_func_t or a PSdissect_func.
         params can be either the appropriate params' structure for func or None if there isn't one.
         '''
@@ -262,7 +262,7 @@ class FieldItem(ItemBase):
         @param encoding: Encoding for reading the field. See ws_consts.py. If it is set to None, a default encoding is picked from FIELD_TYPES_DICT in cal_consts.py. (default: None)
         @param mask: Bit mask. (default: NO_MASK=0)
         @param display: How the field's value will be displayed in the tree. See ws_consts.py. If it is set to None, a default display is picked from FIELD_TYPES_DICT in cal_consts.py. (default: None)
-        @param strings: Not implemented yet :(
+        @param strings: A dictionary for translating the field's value into text. For boolean fields use True and False as keys, for integers use either the values directly or tuples of (min, max) - not both at the same dictionary! 
         @param length: Length of the field in bytes. If it is set to None, a default length is picked from FIELD_TYPES_DICT in cal_consts.py. (default: None)
         '''
         
@@ -295,8 +295,15 @@ class FieldItem(ItemBase):
             _length = FIELD_TYPES_DICT[field_type].default_length
         else:
             _length = length
-            
-        self._field = WSheader_field_info(_full_name, None, field_type, _display, strings, mask, _descr, *HFILL)
+        
+        
+        if strings is None:
+            _strings = None
+        else:
+            _strings, str_display = self._generate_strings_struct(strings)
+            _display |= str_display
+        
+        self._field = WSheader_field_info(_full_name, None, field_type, _display, _strings, mask, _descr, *HFILL)
         self._index = c_int(NEW_INDEX)
         self._params = PSadd_tree_item_params(pointer(self._index), _length, _encoding, None)
         
@@ -324,8 +331,33 @@ class FieldItem(ItemBase):
         '''
         return [(self._cal.pslib.add_tree_item, self._params),
                 (self._cal.pslib.advance_offset, self._offset_params)]
-                
 
+    def _generate_strings_struct(self, strings_dict):
+        '''
+        @summary: Generates the strings structure in the header_field_info.
+        @strings_dict: The dictionary for translating the field's value into text.
+        @return: A tuple of the form: (The new structure's address or 'None', the appropriate display flag). 
+        '''
+        keys_type = None
+        str_display = 0
+        for key in strings_dict.iterkeys():
+            if keys_type is None:
+                keys_type = type(key)
+            elif keys_type != type(key):
+                return (None, 0)
+        if keys_type == int:
+            vals_array_type = WSvalue_string * (len(strings_dict) + 1)
+            self._strings = vals_array_type(*([WSvalue_string(value, s) for value, s in strings_dict.iteritems()] + [WSvalue_string(0,None)]))
+        elif keys_type == bool:
+            self._strings = WStrue_false_string(strings_dict[True], strings_dict[False])
+        elif keys_type == tuple:
+            rvals_array_type = WSrange_string * (len(strings_dict) + 1)
+            self._strings = rvals_array_type(*([WSrange_string(min, max, s) for (min, max), s in strings_dict.iteritems()] + [WSrange_string(0,0, None)]))
+            str_display = BASE_RANGE_STRING
+        
+        return (addressof(self._strings), str_display)
+
+            
 class TextItem(FieldItem):
     def __init__(self, name, text, length = 0):
         '''
@@ -397,6 +429,24 @@ class Subtree(ItemBase):
         
     def get_child_items(self):
         return self._subitems[1:]
+
+class ColumnItem(ItemBase):
+    '''
+    @summary: Changes the text of a column
+    '''
+    def __init__(self, col_id, text):
+        '''
+        @summary: A constructor.
+        @param col_id: The column's id (any COL_* from ws_consts.py).
+        @param text: The new text of the column.
+        '''
+        self._params = PSset_column_text_params(col_id, text)
+    
+    def get_node_list(self):   
+        '''
+        @summary: See ItemBase.
+        '''
+        return [(self._cal.pslib.set_column_text, self._params)]
         
 
 class PyFunctionItem(ItemBase):
@@ -469,7 +519,7 @@ class Packet(object):
         '''
         @summary: Adds a new text item to the tree.
         @param p_tvb: A pointer to the tvbuff.
-        @return The tvb's bytes as a string.
+        @return: The tvb's bytes as a string.
         '''
         length = p_tvb.contents.length
         byte_array = (c_char * length).from_address(addressof(p_tvb.contents.real_data.contents))
@@ -487,7 +537,17 @@ class Packet(object):
         else:
             _offset = offset
         self._cal.wslib.proto_tree_add_text(self.p_new_tree, self.p_new_tvb, _offset, length, text)
+    
+    def set_column_text(self, col_id, text):
+        '''
+        @summary: Sets a column's text.
+        @param col_id: The column's id (any COL_* from ws_consts.py).
+        @param text: The new text of the column.
+        '''
         
+        #offset and tvb_and_tree passed as zero and None respectively, since it doesn't really matter
+        self._cal.pslib.set_column_text(None, self._p_pinfo, 0, pointer(PSset_column_text_params(col_id, text)))
+    
     def read_item(self, item_key):
         '''
         @summary: Reads an item from the items dictionary passed to PyFunctionItem, adds it to the tree and advances the offset.

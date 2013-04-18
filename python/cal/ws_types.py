@@ -83,6 +83,18 @@ class WStree_data(Structure):
 class WSproto_node(Structure):
     pass
 
+
+class WStrue_false_string(Structure):
+    pass
+    
+class WSvalue_string(Structure):
+    pass
+    
+class WSstring_string(Structure):
+    pass    
+
+class WSrange_string(Structure):
+    pass    
     
 WSns_time._fields_ = [("secs", c_int), # Should work on most systems
                       ("nsecs", c_int)]
@@ -237,3 +249,13 @@ WSproto_node._fields_ = [("first_child", POINTER(WSproto_node)),
                          
 WSproto_tree = WSproto_node
 WSproto_item = WSproto_node
+
+WStrue_false_string._fields_ = [("true_string", c_char_p),
+                                ("false_string", c_char_p)]
+                                
+WSvalue_string._fields_ = [("value", c_int32),
+                           ("str", c_char_p)]
+                           
+WSrange_string._fields_= [("value_min", c_int32),
+                          ("value_max", c_int32),
+                          ("str", c_char_p)]

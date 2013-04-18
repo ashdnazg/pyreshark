@@ -127,6 +127,11 @@ ENC_UCS_2 = 0x00000006
 ENC_EBCDIC = 0x00000008
 ENC_NA = 0x00000000
 
+######## DISPLAY VALUES (MORE) #########
+BASE_DISPLAY_E_MASK = 0x0F
+BASE_RANGE_STRING = 0x10
+BASE_EXT_STRING = 0x20
+
 ################# MISC #################
 
 if "ENC_ASCII" in dir():
