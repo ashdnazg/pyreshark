@@ -65,8 +65,14 @@ init_pyreshark(void)
         return;
     }
     g_free(py_init_path);
-
+    
+#if PY_MAJOR_VERSION==2 && PY_MINOR_VERSION>=7
+    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE);
+#elif PY_MAJOR_VERSION==2 && PY_MINOR_VERSION<7
     PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE);
+#else
+#error Python 2.* is required.
+#endif
     Py_DECREF(py_init_file);
     
 }
