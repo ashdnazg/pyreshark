@@ -20,12 +20,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+import sys
 
-from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p
+
+from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, create_string_buffer, c_ubyte
 from struct import unpack, calcsize
 from ps_types import PStvbuff_and_tree, PSdissect_func
 from ws_types import WSheader_field_info, WShf_register_info, WSvalue_string, WStrue_false_string, WSrange_string
-from param_structs import PSadd_tree_item_params, PSadd_text_item_params, PSpush_tree_params, PSpop_tree_params, PSadvance_offset_params, PSset_column_text_params, PScall_next_dissector_params
+from param_structs import PSadd_tree_item_params, PSadd_text_item_params, PSpush_tree_params, PSpop_tree_params, PSpush_tvb_params, PSpop_tvb_params, PSadvance_offset_params, PSset_column_text_params, PScall_next_dissector_params
 from cal_consts import ENC_READ_LENGTH, TOP_TREE, DEFAULT_TREE, AUTO_TREE, NO_MASK, FIELD_TYPES_DICT, NEW_INDEX, OFFSET_FLAGS_READ_LENGTH, OFFSET_FLAGS_NONE
 from ws_consts import HFILL, COL_PROTOCOL, ENC_BIG_ENDIAN, ENC_NA, FT_NONE, DATA, REMAINING_LENGTH, BASE_RANGE_STRING
 
@@ -487,6 +489,53 @@ class PyFunctionItem(ItemBase):
         p_tvb_and_tree.contents.tree = p.p_new_tree
         p_offset.contents.value = p.offset
         
+
+class SubSource(ItemBase):
+    '''
+    @summary: Adds a new data source from which the sub-fields will be read
+    '''
+    def __init__(self, source_name, create_data_func, items_list):
+        '''
+        @summary: A constructor.
+        @param create_data_func: The python function that returns the new source's bytes as a string. It'll be called with a single parameter: a Packet instance.
+        @param items_list: A list of the items that will be read from the new source.
+        '''
+        self._create_data_func = create_data_func
+        self._c_callback = PSdissect_func(self._callback)
+        self._subitems = items_list
+        
+        self.old_offset = c_int(0)
+        
+        self._push_params = PSpush_tvb_params(source_name, None, 0, pointer(self.old_offset))
+        self._pop_params = PSpop_tvb_params(pointer(self.old_offset))
+        
+    def generate_filter_name(self, prefix):
+        '''
+        @summary: See ItemBase.
+        '''
+        for subitem in getattr(self, "_subitems", []):
+            subitem.generate_filter_name(prefix)
+    
+    def get_node_list(self):
+        '''
+        @summary: See ItemBase.
+        '''
+        node_list = [(self._c_callback, None), (self._cal.pslib.push_tvb, self._push_params)]
+        for item in self._subitems:
+            node_list.extend(item.get_node_list())
+        node_list.extend([(self._cal.pslib.pop_tvb, self._pop_params)])
+        return node_list
+        
+    def _callback(self, p_tvb_and_tree, p_pinfo, p_offset, params):
+        '''
+        @summary: The callback that will be called from the C code. Don't call this directly.
+        '''
+        p = Packet(p_tvb_and_tree.contents.tvb, p_tvb_and_tree.contents.tree, p_pinfo, p_offset, self._cal, None)
+        self._data = self._create_data_func(p)
+        self._push_params.data = self._data
+        self._push_params.length = len(self._data)
+        p_offset.contents.value = p.offset
+
         
 class Packet(object):
     '''
