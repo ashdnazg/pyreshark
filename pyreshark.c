@@ -32,7 +32,6 @@
 #include <Python.h>
 
 #include <glib.h>
-#include <epan/tvbuff-int.h>
 #include <epan/packet.h>
 #include <epan/expert.h>
 #include <epan/filesystem.h>
@@ -171,7 +170,7 @@ push_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pu
     data = g_malloc(params->length);
     memcpy(data, params->data, params->length);
     *(params->p_old_offset) = *p_offset;
-    
+    *(params->p_old_tvb) = tvb_and_tree->tvb;
     
     new_tvb = tvb_new_child_real_data(tvb_and_tree->tvb, data, params->length, params->length);
     tvb_set_free_cb(new_tvb, g_free);
@@ -185,7 +184,7 @@ void
 pop_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pop_tvb_params_t *params)
 {
     *p_offset = *(params->p_old_offset);
-    tvb_and_tree->tvb = tvb_and_tree->tvb->previous;
+    tvb_and_tree->tvb = *(params->p_old_tvb);
 }
 
 void 

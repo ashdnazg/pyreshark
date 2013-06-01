@@ -89,10 +89,12 @@ typedef struct push_tvb_params_s {
     guint8 *data;
     guint length;
     int *p_old_offset;
+    tvbuff_t **p_old_tvb;
 } push_tvb_params_t;
 
 typedef struct pop_tvb_params_s {
     int *p_old_offset;
+    tvbuff_t **p_old_tvb;
 } pop_tvb_params_t;
 
 #ifdef __cplusplus

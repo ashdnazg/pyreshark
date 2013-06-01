@@ -23,7 +23,7 @@
 import sys
 
 
-from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, create_string_buffer, c_ubyte
+from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, c_void_p
 from struct import unpack, calcsize
 from ps_types import PStvbuff_and_tree, PSdissect_func
 from ws_types import WSheader_field_info, WShf_register_info, WSvalue_string, WStrue_false_string, WSrange_string
@@ -505,9 +505,9 @@ class SubSource(ItemBase):
         self._subitems = items_list
         
         self.old_offset = c_int(0)
-        
-        self._push_params = PSpush_tvb_params(source_name, None, 0, pointer(self.old_offset))
-        self._pop_params = PSpop_tvb_params(pointer(self.old_offset))
+        self.old_tvb = c_void_p(0)
+        self._push_params = PSpush_tvb_params(source_name, None, 0, pointer(self.old_offset), pointer(self.old_tvb))
+        self._pop_params = PSpop_tvb_params(pointer(self.old_offset), pointer(self.old_tvb))
         
     def generate_filter_name(self, prefix):
         '''
