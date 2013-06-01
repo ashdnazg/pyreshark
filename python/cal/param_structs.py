@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, Structure, c_int, c_uint, c_char_p
+from ctypes import POINTER, Structure, c_int, c_uint, c_char_p, c_ubyte
 from ws_types import WSproto_node, WSproto_tree
 
 class PSadd_tree_item_params(Structure):
@@ -59,3 +59,12 @@ class PScall_next_dissector_params(Structure):
                 ("length", POINTER(c_int)),        #-1 for all remaining bytes. 
                 ("default_name", c_char_p),
                 ("default_length", c_int)]
+                
+class PSpush_tvb_params(Structure):
+    _fields_ = [("name", c_char_p),
+                ("data", c_char_p),  #Originally c_ubyte
+                ("length", c_int),
+                ("p_old_offset", POINTER(c_int))]
+                
+class PSpop_tvb_params(Structure):
+    _fields_ = [("p_old_offset", POINTER(c_int))]

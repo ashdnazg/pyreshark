@@ -32,6 +32,7 @@
 #include <Python.h>
 
 #include <glib.h>
+#include <epan/tvbuff-int.h>
 #include <epan/packet.h>
 #include <epan/expert.h>
 #include <epan/filesystem.h>
@@ -159,6 +160,32 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, po
         proto_item_set_len(tvb_and_tree->tree, *p_offset - *(params->p_start_offset));
         tvb_and_tree->tree = tvb_and_tree->tree->parent;
     }
+}
+
+void
+push_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, push_tvb_params_t *params)
+{
+    guint8* data;
+    tvbuff_t* new_tvb;
+    
+    data = g_malloc(params->length);
+    memcpy(data, params->data, params->length);
+    *(params->p_old_offset) = *p_offset;
+    
+    
+    new_tvb = tvb_new_child_real_data(tvb_and_tree->tvb, data, params->length, params->length);
+    tvb_set_free_cb(new_tvb, g_free);
+    add_new_data_source(pinfo, new_tvb, params->name);
+    
+    tvb_and_tree->tvb = new_tvb;
+    *p_offset = 0;
+}
+
+void
+pop_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pop_tvb_params_t *params)
+{
+    *p_offset = *(params->p_old_offset);
+    tvb_and_tree->tvb = tvb_and_tree->tvb->previous;
 }
 
 void 

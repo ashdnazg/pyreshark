@@ -8,3 +8,5 @@ push_tree
 pop_tree
 advance_offset
 set_column_text
+push_tvb
+pop_tvb

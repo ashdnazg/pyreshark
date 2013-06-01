@@ -84,6 +84,16 @@ typedef struct call_next_dissector_params_s {
     gint default_length;
 } call_next_dissector_params_t;
 
+typedef struct push_tvb_params_s {
+    char *name;
+    guint8 *data;
+    guint length;
+    int *p_old_offset;
+} push_tvb_params_t;
+
+typedef struct pop_tvb_params_s {
+    int *p_old_offset;
+} pop_tvb_params_t;
 
 #ifdef __cplusplus
 }
