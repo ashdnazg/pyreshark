@@ -62,7 +62,7 @@ class PScall_next_dissector_params(Structure):
                 
 class PSpush_tvb_params(Structure):
     _fields_ = [("name", c_char_p),
-                ("data", c_char_p),  #Originally c_ubyte
+                ("data", c_char_p),  #Actually should be c_ubyte, but the code in cal_types.py is easier to read (and write) this way.
                 ("length", c_int),
                 ("p_old_offset", POINTER(c_int))]
                 
