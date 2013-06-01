@@ -14,12 +14,59 @@ Pyreshark is released under the GNU GPLv2 license. See <http://www.gnu.org/licen
 
 Installation
 ============
-Python 2.7.3 is required, so make sure it is installed
+Python 2.7.* or 2.6.* is required, so make sure it is installed.
 
 Put pyreshark.dll in <Wireshark-Dir>\plugins\1.*.*\
-Put all files in the python folder in <Wireshark-Dir>\python. 
+Put all files in the python folder in <Wireshark-Dir>\python.
 
 The overall directory structure should be:
 <Wireshark-Dir>\python
 <Wireshark-Dir>\python\cal
 <Wireshark-Dir>\python\protocols
+
+Using Pyreshark
+===============
+
+To add an existing dissector just drop it in <Wireshark-Dir>\python\protocols
+
+To write a new dissector see the guide at http://code.google.com/p/pyreshark/wiki/WritingDissectors
+
+
+Building Pyreshark
+==================
+Currently the plugin was tested on win32, win64 and some linux distro's.
+
+Win32/64 Instructions:
+
+    1. Get Wireshark's source.
+    2. Build Wireshark.
+    3. Get pyreshark's source through hg clone.
+    4. Place pyreshark's source in the plugins dir of Wireshark's source.
+    5. (win64 only) Wirehsark's config.h has to be tweaked since it collides with python's headers, I hacked the end to the following, and it is apparently working:
+        
+        #ifdef _WIN64
+        typedef __int64 ssize_t;
+        #else
+        #if !defined(QT_VERSION) || !defined(_SSIZE_T_DEFINED)
+        typedef int ssize_t;
+        #endif
+        #endif
+
+    6. Go to <WS_source_root>\plugins\pyreshark and run:
+        nmake -f Makefile.nmake all
+    7. If all went well, you can now copy the shiny new pyreshark.dll and python folder to your Wireshark installation.
+
+Linux Instructions:
+    1. Get Wireshark's source.
+    3. Get pyreshark's source through hg clone.
+    4. Place pyreshark's source in the plugins dir of Wireshark's source.
+    5. Follow the instructions in http://anonsvn.wireshark.org/wireshark/trunk/doc/README.plugins
+    6. Build Wireshark and install it.
+    7. If all went well, you should have the plugin installed as well. 
+    
+    
+    
+==Contact==
+For bugs, questions, suggestions etc.  feel free to contact me by mail: <ashdnazg [AT] gmail.com>.
+
+Go wild.
