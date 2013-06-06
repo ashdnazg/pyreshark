@@ -18,18 +18,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+ 
+/* The following two lines prevent redefinition of ssize_t on win64*/
+#define _SSIZE_T_DEFINED
+#define QT_VERSION
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#include "config.h"
 
 #include "pyreshark.h"
-#include "param_structs.h"
-
-
-
 
 #include <Python.h>
+
+
+#include "param_structs.h"
 
 #include <glib.h>
 #include <epan/packet.h>
