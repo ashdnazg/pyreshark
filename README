@@ -42,27 +42,17 @@ Win32/64 Instructions:
     2. Build Wireshark.
     3. Get pyreshark's source through hg clone.
     4. Place pyreshark's source in the plugins dir of Wireshark's source.
-    5. (win64 only) Wirehsark's config.h has to be tweaked since it collides with python's headers, I hacked the end to the following, and it is apparently working:
-        
-        #ifdef _WIN64
-        typedef __int64 ssize_t;
-        #else
-        #if !defined(QT_VERSION) || !defined(_SSIZE_T_DEFINED)
-        typedef int ssize_t;
-        #endif
-        #endif
-
-    6. Go to <WS_source_root>\plugins\pyreshark and run:
+    5. Go to <WS_source_root>\plugins\pyreshark and run:
         nmake -f Makefile.nmake all
-    7. If all went well, you can now copy the shiny new pyreshark.dll and python folder to your Wireshark installation.
+    6. If all went well, you can now copy the shiny new pyreshark.dll and python folder to your Wireshark installation.
 
 Linux Instructions:
     1. Get Wireshark's source.
-    3. Get pyreshark's source through hg clone.
-    4. Place pyreshark's source in the plugins dir of Wireshark's source.
-    5. Follow the instructions in http://anonsvn.wireshark.org/wireshark/trunk/doc/README.plugins
-    6. Build Wireshark and install it.
-    7. If all went well, you should have the plugin installed as well. 
+    2. Get pyreshark's source through hg clone.
+    3. Place pyreshark's source in the plugins dir of Wireshark's source.
+    4. Follow the instructions in http://anonsvn.wireshark.org/wireshark/trunk/doc/README.plugins
+    5. Build Wireshark and install it.
+    6. If all went well, you should have the plugin installed as well. 
     
     
     
