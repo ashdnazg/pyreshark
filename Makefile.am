@@ -60,11 +60,14 @@ EXTRA_DIST = \
 	plugin.rc.in		\
 	CMakeLists.txt
 
-all: all-am ws_consts
+all: all-am ws_consts ws_types
 	
 ws_consts:	
 	$(PYTHON) generate_ws_consts.py python/cal/ws_consts.py
 
+ws_types:	
+	cp templates/ws_types.py.$(VERSION_MAJOR)_$(VERSION_MINOR) python/cal/ws_types.py
+    
 install-data-am: install-pluginLTLIBRARIES install-python
 
 install-python:
