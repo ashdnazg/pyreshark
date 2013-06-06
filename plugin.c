@@ -23,29 +23,37 @@
  * Do not Delete this file, it is no longer auto-created.
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+/* The following two lines prevent redefinition of ssize_t on win64*/
+#define _SSIZE_T_DEFINED
+#define QT_VERSION
 
-#include "pyreshark.h"
+#include "config.h"
+
 #include <gmodule.h>
 
 #include "moduleinfo.h"
 
+#if VERSION_MINOR > 8
+#define WS_BUILD_DLL
+#include "ws_symbol_export.h"
+#else
+#define WS_DLL_PUBLIC_NOEXTERN G_MODULE_EXPORT
+#endif
+
 #ifndef ENABLE_STATIC
-G_MODULE_EXPORT const gchar version[] = VERSION;
+WS_DLL_PUBLIC_NOEXTERN const gchar version[] = VERSION;
 
 /* Start the functions we need for the plugin stuff */
 
-G_MODULE_EXPORT void
+WS_DLL_PUBLIC_NOEXTERN void
 plugin_register (void)
 {
-    init_pyreshark();
+    {extern void init_pyreshark (void); init_pyreshark();}
 }
 
-G_MODULE_EXPORT void
+WS_DLL_PUBLIC_NOEXTERN void
 plugin_reg_handoff(void)
 {
-    handoff_pyreshark();
+    {extern void handoff_pyreshark (void); handoff_pyreshark();}
 }
 #endif

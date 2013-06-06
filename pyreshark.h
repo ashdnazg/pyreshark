@@ -135,6 +135,16 @@ void set_column_text(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *
 */
 void call_next_dissector(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, call_next_dissector_params_t *params);
 
+/**
+    Creates a new data source.
+*/
+void push_tvb(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *p_offset _U_, push_tvb_params_t *params);
+
+/**
+    Returns to the previous data source.
+*/
+void pop_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, pop_tvb_params_t *params);
+
 
 /**
     I'd have loved to use the exact same function that exists in proto.c but unfortunately it isn't exported,
