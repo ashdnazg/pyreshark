@@ -18,18 +18,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+ 
+/* The following two lines prevent redefinition of ssize_t on win64*/
+#define _SSIZE_T_DEFINED
+#define QT_VERSION
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#include "config.h"
 
 #include "pyreshark.h"
-#include "param_structs.h"
-
-
-
 
 #include <Python.h>
+
+
+#include "param_structs.h"
 
 #include <glib.h>
 #include <epan/packet.h>
@@ -65,8 +66,14 @@ init_pyreshark(void)
         return;
     }
     g_free(py_init_path);
-
+    
+#if PY_MAJOR_VERSION==2 && PY_MINOR_VERSION>=7
+    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE);
+#elif PY_MAJOR_VERSION==2 && PY_MINOR_VERSION<7
     PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE);
+#else
+#error Python 2.* is required.
+#endif
     Py_DECREF(py_init_file);
     
 }
@@ -153,6 +160,32 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, po
         proto_item_set_len(tvb_and_tree->tree, *p_offset - *(params->p_start_offset));
         tvb_and_tree->tree = tvb_and_tree->tree->parent;
     }
+}
+
+void
+push_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, push_tvb_params_t *params)
+{
+    guint8* data;
+    tvbuff_t* new_tvb;
+    
+    data = g_malloc(params->length);
+    memcpy(data, params->data, params->length);
+    *(params->p_old_offset) = *p_offset;
+    *(params->p_old_tvb) = tvb_and_tree->tvb;
+    
+    new_tvb = tvb_new_child_real_data(tvb_and_tree->tvb, data, params->length, params->length);
+    tvb_set_free_cb(new_tvb, g_free);
+    add_new_data_source(pinfo, new_tvb, params->name);
+    
+    tvb_and_tree->tvb = new_tvb;
+    *p_offset = 0;
+}
+
+void
+pop_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pop_tvb_params_t *params)
+{
+    *p_offset = *(params->p_old_offset);
+    tvb_and_tree->tvb = *(params->p_old_tvb);
 }
 
 void 
