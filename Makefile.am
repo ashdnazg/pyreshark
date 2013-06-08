@@ -19,6 +19,8 @@
 #
 
 INCLUDES = -I$(top_srcdir) -I$(includedir) `python-config --includes`
+VERSION_MAJOR = $(word 1, $(subst ., ,$(VERSION)))
+VERSION_MINOR = $(word 2, $(subst ., ,$(VERSION)))
 
 include Makefile.common
 
