@@ -1,6 +1,5 @@
 '''
-@summary: Main module, doesn't hold much logic.
-Don't import this, as it relies on sys being already imported in the C code
+@summary: Generates python\cal\ws_consts.py according to Wireshark's source.
 '''
 # generate_ws_consts.py
 #
