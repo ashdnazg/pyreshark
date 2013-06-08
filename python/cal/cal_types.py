@@ -604,9 +604,9 @@ class Packet(object):
         '''
         node_list = self._items_dict[item_key].get_node_list()
         temp_offset = pointer(c_int(self.offset))
-        
+        tvb_and_tree = pointer(PStvbuff_and_tree(self.p_new_tvb, self.p_new_tree))
         for func, params in node_list:
-            func(pointer(PStvbuff_and_tree(self.p_new_tvb, self.p_new_tree)), self._p_pinfo, temp_offset, addressof(params))
+            func(tvb_and_tree, self._p_pinfo, temp_offset, addressof(params))
         
         self.offset = temp_offset.contents.value
     
