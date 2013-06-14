@@ -20,8 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-import sys
-
 
 from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, c_void_p
 from struct import unpack, calcsize
@@ -606,7 +604,11 @@ class Packet(object):
         temp_offset = pointer(c_int(self.offset))
         tvb_and_tree = pointer(PStvbuff_and_tree(self.p_new_tvb, self.p_new_tree))
         for func, params in node_list:
-            func(tvb_and_tree, self._p_pinfo, temp_offset, addressof(params))
+            if params is None:
+                p_params = None
+            else:
+                p_params = addressof(params)
+            func(tvb_and_tree, self._p_pinfo, temp_offset, p_params)
         
         self.offset = temp_offset.contents.value
     
