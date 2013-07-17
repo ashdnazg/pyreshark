@@ -29,4 +29,3 @@ class Protocol(ProtocolBase):
         self._filter_name = "pyreshark"
         self._short_name = "PYRESHARK"
         self._items = []
-

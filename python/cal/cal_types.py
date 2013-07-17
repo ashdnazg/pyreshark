@@ -20,8 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-import sys
-
 
 from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, c_void_p
 from struct import unpack, calcsize
@@ -627,4 +625,3 @@ class Packet(object):
             _offset = offset
             
         return unpack(format, self.buffer[_offset:_offset+calcsize(format)])
-        

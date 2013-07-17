@@ -38,4 +38,3 @@ class PSpy_dissector(Structure):
     _fields_ = [("dissection_chain", POINTER(POINTER(PSdissection_node))),
                 ("length", c_int),
                 ("name", c_char_p)]
-                
