@@ -606,13 +606,12 @@ class Packet(object):
         temp_offset = pointer(c_int(self.offset))
         tvb_and_tree = pointer(PStvbuff_and_tree(self.p_new_tvb, self.p_new_tree))
         for func, params in node_list:
-            func(tvb_and_tree, self._p_pinfo, temp_offset, addressof(params))
             if params is None:
                 p_params = None
             else:
                 p_params = addressof(params)
-            func(tvb_and_tree, self._p_pinfo, temp_offset, p_params)
             func.argtypes = PS_DISSECT_FUNC_ARGS
+            func(tvb_and_tree, self._p_pinfo, temp_offset, p_params)
         
         self.offset = temp_offset.contents.value
     
