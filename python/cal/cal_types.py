@@ -389,8 +389,9 @@ class Subtree(ItemBase):
         @param tree_name: Used by Wireshark for remembering which trees are expanded. Put AUTO_TREE for the name of parent_item. (default: AUTO_TREE)
         '''
         self.start_offset = c_int(0)
-        self._params = PSpush_tree_params(pointer(parent_item.pointer), None, pointer(self.start_offset), None)
-        self._pop_params = PSpop_tree_params(pointer(self.start_offset))
+        self.old_tree = c_void_p(0)
+        self._params = PSpush_tree_params(pointer(parent_item.pointer), None, pointer(self.start_offset), pointer(self.old_tree))
+        self._pop_params = PSpop_tree_params(pointer(self.start_offset), pointer(self.old_tree))
         self._subitems = [parent_item] + item_list
         self._tree_name = tree_name
         

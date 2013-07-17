@@ -40,10 +40,11 @@ class PSpush_tree_params(Structure):
     _fields_ = [("parent", POINTER(POINTER(WSproto_node))),
                 ("p_index", POINTER(c_int)),
                 ("p_start_offset", POINTER(c_int)),
-                ("out_tree", POINTER(WSproto_tree))]
+                ("p_old_tree", POINTER(c_void_p))]
                 
 class PSpop_tree_params(Structure):
-    _fields_ = [("p_start_offset", POINTER(c_int)),]
+    _fields_ = [("p_start_offset", POINTER(c_int)),
+                ("p_old_tree", POINTER(c_void_p))]
     
 class PSadvance_offset_params(Structure):
     _fields_ = [("length", c_int),

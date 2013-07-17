@@ -50,11 +50,12 @@ typedef struct push_tree_params_s {
     proto_item **parent;
     gint *p_index;
     int *p_start_offset;
-    proto_tree *out_tree;
+    proto_tree **p_old_tree;
 } push_tree_params_t;
 
 typedef struct pop_tree_params_s {
     int *p_start_offset;
+    proto_tree **p_old_tree;
 } pop_tree_params_t;
 
 

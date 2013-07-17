@@ -146,9 +146,9 @@ push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, p
 {
     if (tvb_and_tree->tree)
     {
-        params->out_tree = proto_item_add_subtree(*(params->parent), *(params->p_index));
-        tvb_and_tree->tree = params->out_tree;
         *(params->p_start_offset) = *p_offset;
+        *(params->p_old_tree) = tvb_and_tree->tree;
+        tvb_and_tree->tree = proto_item_add_subtree(*(params->parent), *(params->p_index));
     }
 }
 
@@ -158,7 +158,7 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, po
     if (tvb_and_tree->tree)
     {
         proto_item_set_len(tvb_and_tree->tree, *p_offset - *(params->p_start_offset));
-        tvb_and_tree->tree = tvb_and_tree->tree->parent;
+        tvb_and_tree->tree = *(params->p_old_tree);
     }
 }
 
