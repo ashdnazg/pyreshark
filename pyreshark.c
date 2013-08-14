@@ -49,7 +49,7 @@ init_pyreshark(void)
     char *py_init_path;
     char *python_cmd;
     void *py_init_file;
-    python_version_t py_version;
+    python_version_t py_version = PYTHON_VERSION_NOT_SET;
     
     g_python_lib = load_python(&py_version);
     if (g_python_lib == NULL)
