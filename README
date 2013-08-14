@@ -50,13 +50,16 @@ Linux Instructions:
     1. Get Wireshark's source.
     2. Get pyreshark's source through hg clone.
     3. Place pyreshark's source in the plugins dir of Wireshark's source.
-    4. Follow the instructions in http://anonsvn.wireshark.org/wireshark/trunk/doc/README.plugins
-    5. Build Wireshark and install it.
-    6. If all went well, you should have the plugin installed as well. 
+    4. If your Python dynamic library isn't named libpython2.*.so.1.0 or isn't in the search path, 
+       change the PYTHON_* values in python_loader.h to the correct full path of the library.
+    5. Follow the instructions in http://anonsvn.wireshark.org/wireshark/trunk/doc/README.plugins
+    6. Build Wireshark and install it.
+    7. If all went well, you should have the plugin installed as well. 
     
     
     
-==Contact==
+Contact
+=======
 For bugs, questions, suggestions etc.  feel free to contact me by mail: <ashdnazg [AT] gmail.com>.
 
 Go wild.
