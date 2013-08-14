@@ -52,7 +52,10 @@ init_pyreshark(void)
     python_version_t py_version;
     
     g_python_lib = load_python(&py_version);
-    
+    if (g_python_lib == NULL)
+    {
+        return;
+    }
     python_cmd = g_strdup_printf("import sys;sys.path.append(\'%s\')", get_datafile_path(PYTHON_DIR));
     g_python_lib->PyRun_SimpleStringFlags(python_cmd, NULL);
     g_free(python_cmd);
@@ -166,10 +169,10 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, po
 void
 push_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, push_tvb_params_t *params)
 {
-    guint8* data;
-    tvbuff_t* new_tvb;
+    guint8 *data;
+    tvbuff_t *new_tvb;
     
-    data = g_malloc(params->length);
+    data = (guint8 *) g_malloc(params->length);
     memcpy(data, params->data, params->length);
     *(params->p_old_offset) = *p_offset;
     *(params->p_old_tvb) = tvb_and_tree->tvb;
