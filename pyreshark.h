@@ -26,14 +26,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#define WS_BUILD_DLL
+
+#include "config.h"
 #include <glib.h>
 #include <epan/packet.h>
 
 #include "param_structs.h"
 
+
 #if VERSION_MINOR > 8
-#define WS_BUILD_DLL
-#include "ws_symbol_export.h"
+#include <ws_symbol_export.h>
 #else
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef WS_BUILD_DLL
