@@ -36,7 +36,9 @@ extern "C" {
     #define PYTHON_26 "libpython2.6.so.1.0"
 #endif
 
-
+/**
+    Stores pointers for various functions in the Python dynamic library.
+*/
 typedef struct python_lib_s {
     void (*Py_Initialize)(void);
     int (*PyRun_SimpleStringFlags)(const char *, void *);
@@ -48,12 +50,18 @@ typedef struct python_lib_s {
 } python_lib_t;
 
 typedef enum python_version_e {
-    PYTHON_VERSION_27,                       //Don't read the length from the packet
-    PYTHON_VERSION_26,                //The value of the length field doesn't include its own bytes.
+    PYTHON_VERSION_NOT_SET,
+    PYTHON_VERSION_27,
+    PYTHON_VERSION_26,
 } python_version_t;
 
 
-python_lib_t * load_python(python_version_t * version);
+/**
+    Tries to load Python 2.7.* or 2.6.* (if it fails to find 2.6.*) dynamic library 
+    initializes a python_lib_t from the loaded library and returns it.
+    Returns NULL if both versions were not found.
+*/
+python_lib_t * load_python(python_version_t * out_version);
 
 #ifdef __cplusplus
 }
