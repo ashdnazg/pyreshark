@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-INCLUDES = -I$(top_srcdir) -I$(includedir) `python-config --includes`
+INCLUDES = -I$(top_srcdir) -I$(includedir)
 VERSION_MAJOR = $(word 1, $(subst ., ,$(VERSION)))
 VERSION_MINOR = $(word 2, $(subst ., ,$(VERSION)))
 
@@ -39,14 +39,13 @@ pyreshark_la_SOURCES = \
 	$(DISSECTOR_SRC) \
 	$(DISSECTOR_SUPPORT_SRC) \
 	$(DISSECTOR_INCLUDES)
-pyreshark_la_LDFLAGS = -module -avoid-version
-pyreshark_la_LIBADD = @PY_LIBS@ @PLUGIN_LIBS@
-pyreshark_la_CFLAGS = @PY_CFLAGS@
+pyreshark_la_LDFLAGS = -module -avoid-version --export-symbols pyreshark.def
+pyreshark_la_LIBADD = @PLUGIN_LIBS@
 
 # Libs must be cleared, or else libtool won't create a shared module.
 # If your module needs to be linked against any particular libraries,
 # add them here.
-LIBS = `python-config --ldflags`
+LIBS =
 
 CLEANFILES = \
 	pyreshark \
