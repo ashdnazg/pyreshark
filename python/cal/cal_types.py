@@ -23,7 +23,7 @@
 
 from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, c_void_p
 from struct import unpack, calcsize
-from ps_types import PStvbuff_and_tree, PSdissect_func
+from ps_types import PStvbuff_and_tree, PSdissect_func, PS_DISSECT_FUNC_ARGS
 from ws_types import WSheader_field_info, WShf_register_info, WSvalue_string, WStrue_false_string, WSrange_string
 from param_structs import PSadd_tree_item_params, PSadd_text_item_params, PSpush_tree_params, PSpop_tree_params, PSpush_tvb_params, PSpop_tvb_params, PSadvance_offset_params, PSset_column_text_params, PScall_next_dissector_params
 from cal_consts import ENC_READ_LENGTH, TOP_TREE, DEFAULT_TREE, AUTO_TREE, NO_MASK, FIELD_TYPES_DICT, NEW_INDEX, OFFSET_FLAGS_READ_LENGTH, OFFSET_FLAGS_NONE
@@ -389,8 +389,9 @@ class Subtree(ItemBase):
         @param tree_name: Used by Wireshark for remembering which trees are expanded. Put AUTO_TREE for the name of parent_item. (default: AUTO_TREE)
         '''
         self.start_offset = c_int(0)
-        self._params = PSpush_tree_params(pointer(parent_item.pointer), None, pointer(self.start_offset), None)
-        self._pop_params = PSpop_tree_params(pointer(self.start_offset))
+        self.old_tree = c_void_p(0)
+        self._params = PSpush_tree_params(pointer(parent_item.pointer), None, pointer(self.start_offset), pointer(self.old_tree))
+        self._pop_params = PSpop_tree_params(pointer(self.start_offset), pointer(self.old_tree))
         self._subitems = [parent_item] + item_list
         self._tree_name = tree_name
         
@@ -608,6 +609,7 @@ class Packet(object):
                 p_params = None
             else:
                 p_params = addressof(params)
+            func.argtypes = PS_DISSECT_FUNC_ARGS
             func(tvb_and_tree, self._p_pinfo, temp_offset, p_params)
         
         self.offset = temp_offset.contents.value
@@ -624,4 +626,3 @@ class Packet(object):
             _offset = offset
             
         return unpack(format, self.buffer[_offset:_offset+calcsize(format)])
-        

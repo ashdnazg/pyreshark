@@ -26,39 +26,43 @@
 #include "config.h"
 
 #include "pyreshark.h"
-
-#include <Python.h>
+#include "python_loader.h"
 
 
 #include "param_structs.h"
 
+#include <file.h>
 #include <glib.h>
+
 #include <epan/packet.h>
 #include <epan/expert.h>
 #include <epan/filesystem.h>
 
 
 int g_num_dissectors = 0;
-py_dissector_t ** g_dissectors = NULL;
-
+py_dissector_t **g_dissectors = NULL;
+python_lib_t *g_python_lib;
 
 void
 init_pyreshark(void)
 {
-    char * py_init_path;
-    char * python_cmd;
-    PyObject* py_init_file;
+    char *py_init_path;
+    char *python_cmd;
+    void *py_init_file;
+    python_version_t py_version = PYTHON_VERSION_NOT_SET;
     
-    Py_Initialize();
-    
+    g_python_lib = load_python(&py_version);
+    if (g_python_lib == NULL)
+    {
+        return;
+    }
     python_cmd = g_strdup_printf("import sys;sys.path.append(\'%s\')", get_datafile_path(PYTHON_DIR));
-    PyRun_SimpleString(python_cmd);
+    g_python_lib->PyRun_SimpleStringFlags(python_cmd, NULL);
     g_free(python_cmd);
     
     py_init_path = get_datafile_path(PYTHON_DIR G_DIR_SEPARATOR_S PYRESHARK_INIT_FILE);
-    py_init_file = PyFile_FromString((char *)py_init_path, (char *)"rb");
+    py_init_file = g_python_lib->PyFile_FromString((char *)py_init_path, (char *)"rb");
     
-
     if (NULL == py_init_file) 
     {
         printf("Can't open Pyreshark init file: %s\n", py_init_path);
@@ -66,23 +70,23 @@ init_pyreshark(void)
         return;
     }
     g_free(py_init_path);
-    
-#if PY_MAJOR_VERSION==2 && PY_MINOR_VERSION>=7
-    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE);
-#elif PY_MAJOR_VERSION==2 && PY_MINOR_VERSION<7
-    PyRun_SimpleFileEx(PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE);
-#else
-#error Python 2.* is required.
-#endif
-    Py_DECREF(py_init_file);
-    
+    if (py_version == PYTHON_VERSION_27)
+    {
+        g_python_lib->PyRun_SimpleFileExFlags(g_python_lib->PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE, NULL);
+    } else {
+        g_python_lib->PyRun_SimpleFileExFlags(g_python_lib->PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, TRUE, NULL);
+    }
+    g_python_lib->Py_DecRef(py_init_file);
 }
 
 
 void
 handoff_pyreshark(void)
 {
-    PyRun_SimpleString("g_pyreshark.handoff()");
+    if (g_python_lib != NULL)
+    {
+        g_python_lib->PyRun_SimpleStringFlags("g_pyreshark.handoff()", NULL);
+    }
 }
 
 void 
@@ -146,9 +150,9 @@ push_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, p
 {
     if (tvb_and_tree->tree)
     {
-        params->out_tree = proto_item_add_subtree(*(params->parent), *(params->p_index));
-        tvb_and_tree->tree = params->out_tree;
         *(params->p_start_offset) = *p_offset;
+        *(params->p_old_tree) = tvb_and_tree->tree;
+        tvb_and_tree->tree = proto_item_add_subtree(*(params->parent), *(params->p_index));
     }
 }
 
@@ -158,17 +162,17 @@ pop_tree(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, po
     if (tvb_and_tree->tree)
     {
         proto_item_set_len(tvb_and_tree->tree, *p_offset - *(params->p_start_offset));
-        tvb_and_tree->tree = tvb_and_tree->tree->parent;
+        tvb_and_tree->tree = *(params->p_old_tree);
     }
 }
 
 void
 push_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, push_tvb_params_t *params)
 {
-    guint8* data;
-    tvbuff_t* new_tvb;
+    guint8 *data;
+    tvbuff_t *new_tvb;
     
-    data = g_malloc(params->length);
+    data = (guint8 *) g_malloc(params->length);
     memcpy(data, params->data, params->length);
     *(params->p_old_offset) = *p_offset;
     *(params->p_old_tvb) = tvb_and_tree->tvb;

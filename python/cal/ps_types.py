@@ -29,7 +29,7 @@ class PStvbuff_and_tree(Structure):
                 ("tree", POINTER(WSproto_node))]
 
 PSdissect_func = CFUNCTYPE(None, POINTER(PStvbuff_and_tree), POINTER(WSpacket_info), POINTER(c_int), c_void_p)
-
+PS_DISSECT_FUNC_ARGS = [POINTER(PStvbuff_and_tree), c_void_p, POINTER(c_int), c_void_p]
 class PSdissection_node(Structure):
     _fields_ = [("func", c_void_p),
                 ("params", c_void_p)]
@@ -38,4 +38,3 @@ class PSpy_dissector(Structure):
     _fields_ = [("dissection_chain", POINTER(POINTER(PSdissection_node))),
                 ("length", c_int),
                 ("name", c_char_p)]
-                
