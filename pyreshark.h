@@ -35,7 +35,29 @@ extern "C" {
 #define WS_BUILD_DLL
 #include "ws_symbol_export.h"
 #else
-#define WS_DLL_PUBLIC G_MODULE_EXPORT
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef WS_BUILD_DLL
+    #ifdef __GNUC__
+#define WS_DLL_PUBLIC __attribute__ ((dllexport))
+    #else /* ! __GNUC__ */
+#define WS_DLL_PUBLIC __declspec(dllexport) /* Note: actually gcc seems to also support this syntax. */
+    #endif /* __GNUC__ */
+  #else
+    #ifdef __GNUC__
+#define WS_DLL_PUBLIC __attribute__ ((dllimport))
+    #elif ! (defined ENABLE_STATIC) /* ! __GNUC__ */
+#define WS_DLL_PUBLIC __declspec(dllimport) /* Note: actually gcc seems to also support this syntax. */
+    #else /* ! __GNUC__  && ENABLE_STATIC */
+#define WS_DLL_PUBLIC
+    #endif /* __GNUC__ */
+  #endif /* WS_BUILD_DLL */
+#else
+  #if __GNUC__ >= 4
+#define WS_DLL_PUBLIC __attribute__ ((visibility ("default"))) extern
+  #else /* ! __GNUC__ >= 4 */
+    #define WS_DLL_PUBLIC
+  #endif /* __GNUC__ >= 4 */
+#endif
 #endif
 
 #define PYTHON_DIR "python"
