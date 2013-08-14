@@ -49,7 +49,7 @@ python_lib_t * load_python_lib(const char * python_lib_name)
     {
         return NULL;
     }
-    python_lib = g_malloc(sizeof(python_lib_t));
+    python_lib = (python_lib_t *) g_malloc(sizeof(python_lib_t));
     if (!load_symbol(handle, "Py_Initialize", (void **) &(python_lib->Py_Initialize)) ||
         !load_symbol(handle, "PyRun_SimpleStringFlags", (void **) &(python_lib->PyRun_SimpleStringFlags)) ||
         !load_symbol(handle, "PyFile_FromString", (void **) &(python_lib->PyFile_FromString)) ||

@@ -28,12 +28,17 @@ extern "C" {
 
 #include <file.h>
 
-#define PYTHON_27 "python27"
-#define PYTHON_26 "python26"
+#ifdef _WIN32
+    #define PYTHON_27 "python27"
+    #define PYTHON_26 "python26"
+#else
+    #define PYTHON_27 "libpython2.7.so.1.0"
+    #define PYTHON_26 "libpython2.6.so.1.0"
+#endif
 
 
 typedef struct python_lib_s {
-    void (*Py_Initialize)();
+    void (*Py_Initialize)(void);
     int (*PyRun_SimpleStringFlags)(const char *, void *);
     void * (*PyFile_FromString)(char *, char *);
     FILE * (*PyFile_AsFile)(void *);
