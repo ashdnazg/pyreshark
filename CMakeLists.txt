@@ -20,7 +20,8 @@
 #
 
 set(DISSECTOR_SRC
-    packet-pyreshark.c
+    pyreshark.c
+    python_loader.c
 )
 
 set(PLUGIN_FILES
