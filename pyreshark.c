@@ -210,7 +210,7 @@ set_column_text(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *p_off
 {
     if (check_col(pinfo->cinfo, params->col_id))
     {
-        col_set_str(pinfo->cinfo, params->col_id, params->text);
+        col_add_str(pinfo->cinfo, params->col_id, params->text);
     }
 }
 
