@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast
+from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast, c_char_p
 from ps_types import PSdissection_node, PSpy_dissector
 import platform
 
@@ -73,3 +73,7 @@ class CAL(object):
         array_type = POINTER(PSpy_dissector) * len(dissectors_list)
         self._dissectors_array = array_type(*[pointer(d) for d in dissectors_list])
         self.pslib.register_dissectors_array(len(self._dissectors_array), pointer(self._dissectors_array[0]))
+
+    def error_message(self, message):
+        self._message = c_char_p(message)
+        self.wslib.report_failure(self._message)
