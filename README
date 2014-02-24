@@ -29,7 +29,7 @@ Using Pyreshark
 
 To add an existing dissector just drop it in <Wireshark-Dir>\python\protocols
 
-To write a new dissector see the guide at https://github.com/ashdnazg/pyreshark/wiki/WritingDissectors
+To write a new dissector see the guide at https://github.com/ashdnazg/pyreshark/wiki/Writing-Dissectors
 
 
 Building Pyreshark
