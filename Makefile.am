@@ -1,5 +1,5 @@
 # Makefile.am
-# Automake file for Pyreshark plugin (http://code.google.com/p/pyreshark)
+# Automake file for Pyreshark plugin (https://github.com/ashdnazg/pyreshark)
 #
 # Copyright (c) 2013 by Eshed Shaham
 #
