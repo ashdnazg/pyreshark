@@ -24,6 +24,7 @@ Don't import this, as it relies on sys being already imported in the C code
 
 import os.path
 from glob import glob
+import traceback
 
 for directory in sys.path:
     if os.path.realpath(directory) == os.path.realpath("."):
@@ -58,8 +59,14 @@ class PyreShark(object):
         protocol_files = glob(os.path.join("%s" % (PROTOCOLS_DIR,), "*.py"))
         
         for p_file in protocol_files:
-            proto_module = __import__(p_file.replace("%s%s" % (PROTOCOLS_DIR, os.path.sep), "").replace(".py", ""))
-            self._protocols.append(proto_module.Protocol())
+            try:
+                proto_module = __import__(p_file.replace("%s%s" % (PROTOCOLS_DIR, os.path.sep), "").replace(".py", ""))
+                self._protocols.append(proto_module.Protocol())
+            except:
+                exc = traceback.format_exc().splitlines()
+                message = "Pyreshark error:\n" + "\n".join(exc[-3:])
+                self._cal.error_message(message)
+                traceback.print_exc(file=sys.stderr)
         
         self._cal.register_protocols(self._protocols)
         

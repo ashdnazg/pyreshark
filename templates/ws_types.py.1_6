@@ -23,6 +23,11 @@
 
 from ctypes import POINTER, Structure, Union, c_int, c_uint, c_uint8, c_ubyte, c_uint16, c_uint32, c_uint64, c_void_p, c_int32, c_char_p, c_double, c_int64, c_int16
 
+WS_CREATE_DISSECTOR_HANDLE_ARGS = [c_void_p, c_int]
+WS_CREATE_DISSECTOR_HANDLE_RETURN = c_void_p
+WS_DISSECTOR_ADD_UINT_ARGS = [c_char_p, c_uint32, c_void_p]
+WS_DISSECTOR_ADD_STRING_ARGS = [c_char_p, c_char_p, c_void_p]
+
 class WStvb_backing(Structure):
     pass
 
