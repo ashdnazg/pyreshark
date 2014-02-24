@@ -138,6 +138,20 @@ class ProtocolBase(object):
             for table, value in self._register_under.iteritems():
                 if type(value) == int:
                     self._cal.wslib.dissector_add_uint(table, value, handle)
+                elif type(value) == tuple:
+                    subvalues_type = None
+                    for subvalue in value:
+                        if subvalues_type is None:
+                            subvalues_type = type(subvalue)
+                        elif subvalues_type != type(subvalue):
+                            raise Exception("_register_under key %s is not of type %s" % (subvalue, subvalues_type))
+                    if subvalues_type == int:
+                        for subvalue in value:
+                            self._cal.wslib.dissector_add_uint(table, subvalue, handle)
+                    else:
+                        for subvalue in value:
+                            self._cal.wslib.dissector_add_string(table, subvalue, handle)
+                            
                 else:
                     self._cal.wslib.dissector_add_string(table, str(value), handle)
     
@@ -344,7 +358,7 @@ class FieldItem(ItemBase):
             if keys_type is None:
                 keys_type = type(key)
             elif keys_type != type(key):
-                return (None, 0)
+                raise Exception("String key %s is not of type %s" % (key, keys_type))
         if keys_type == int:
             vals_array_type = WSvalue_string * (len(strings_dict) + 1)
             self._strings = vals_array_type(*([WSvalue_string(value, s) for value, s in strings_dict.iteritems()] + [WSvalue_string(0,None)]))

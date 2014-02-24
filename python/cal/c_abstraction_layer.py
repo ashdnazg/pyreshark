@@ -21,8 +21,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast
+from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast, c_char_p
 from ps_types import PSdissection_node, PSpy_dissector
+from ws_types import WS_CREATE_DISSECTOR_HANDLE_ARGS, WS_CREATE_DISSECTOR_HANDLE_RETURN, WS_DISSECTOR_ADD_UINT_ARGS, WS_DISSECTOR_ADD_STRING_ARGS
 import platform
 
 PSLIBNAME_DICT = {"Windows" : "pyreshark.dll", "Linux" : "pyreshark.so"}
@@ -34,7 +35,11 @@ class CAL(object):
         system = platform.system()
         self.pslib = CDLL(PSLIBNAME_DICT[system])
         self.wslib = CDLL(WSLIBNAME_DICT[system])
-       
+       	self.wslib.create_dissector_handle.argtypes = WS_CREATE_DISSECTOR_HANDLE_ARGS
+        self.wslib.create_dissector_handle.restype = WS_CREATE_DISSECTOR_HANDLE_RETURN
+        self.wslib.dissector_add_uint.argtypes = WS_DISSECTOR_ADD_UINT_ARGS
+        self.wslib.dissector_add_string.argtypes = WS_DISSECTOR_ADD_STRING_ARGS
+        
     def create_dissection_node(self, func, params):
         '''
         @summary: Creates a new dissection node.
@@ -73,3 +78,7 @@ class CAL(object):
         array_type = POINTER(PSpy_dissector) * len(dissectors_list)
         self._dissectors_array = array_type(*[pointer(d) for d in dissectors_list])
         self.pslib.register_dissectors_array(len(self._dissectors_array), pointer(self._dissectors_array[0]))
+
+    def error_message(self, message):
+        self._message = c_char_p(message)
+        self.wslib.report_failure(self._message)
