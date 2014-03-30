@@ -1,3 +1,9 @@
+Latest Downloads:
+https://github.com/ashdnazg/pyreshark/releases/tag/0.1.3
+
+Windows Installer for all versions:
+https://github.com/ashdnazg/pyreshark/releases/download/0.1.3/pyreshark_0.1.3_installer.exe
+
 General Information
 -------------------
 
@@ -6,7 +12,7 @@ Pyreshark is a plugin for Wireshark with the purpose of allowing other plugins t
     2. Ease
     3. Efficiency
 
-The source code and some binaries can be found in http://code.google.com/p/pyreshark
+The source code and some binaries can be found in https://github.com/ashdnazg/pyreshark
 
 License
 -------
@@ -29,7 +35,7 @@ Using Pyreshark
 
 To add an existing dissector just drop it in <Wireshark-Dir>\python\protocols
 
-To write a new dissector see the guide at http://code.google.com/p/pyreshark/wiki/WritingDissectors
+To write a new dissector see the guide at https://github.com/ashdnazg/pyreshark/wiki/Writing-Dissectors
 
 
 Building Pyreshark

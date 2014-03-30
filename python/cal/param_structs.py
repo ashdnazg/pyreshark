@@ -3,7 +3,7 @@
 '''
 # param_structs.py
 #
-# Pyreshark Plugin for Wireshark. (http://code.google.com/p/pyreshark)
+# Pyreshark Plugin for Wireshark. (https://github.com/ashdnazg/pyreshark)
 #
 # Copyright (c) 2013 by Eshed Shaham.
 #
