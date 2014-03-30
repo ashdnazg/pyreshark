@@ -137,18 +137,20 @@ WSaddress._fields_ = [("type", c_uint),
 
 WSframe_data_flags._fields_ = [("passed_dfilter"         ,c_uint, 1),
                                ("dependent_of_displayed" ,c_uint, 1),
-                               ("encoding"               ,c_uint, 2),
+                               ("encoding"               ,c_uint, 1),
                                ("visited"                ,c_uint, 1),
                                ("marked"                 ,c_uint, 1),
                                ("ref_time"               ,c_uint, 1),
                                ("ignored"                ,c_uint, 1),
                                ("has_ts"                 ,c_uint, 1),
-                               ("has_if_id"              ,c_uint, 1)]
+                               ("has_if_id"              ,c_uint, 1),
+                               ("has_pack_flags"         ,c_uint, 1)]
                                
                                
 WSframe_data._fields_ = [("pfd", c_void_p),
                          ("num", c_uint32),
                          ("interface_id", c_uint32),
+                         ("pack_flags", c_uint32),
                          ("pkt_len", c_uint32),
                          ("cap_len", c_uint32),
                          ("cum_bytes", c_uint32),
@@ -160,8 +162,8 @@ WSframe_data._fields_ = [("pfd", c_void_p),
                          ("abs_ts", WSns_time),
                          ("shift_offset", WSns_time),
                          ("rel_ts", WSns_time),
-                         ("del_dis_ts", WSns_time),
-                         ("del_cap_ts", WSns_time),
+                         ("prev_dis", POINTER(WSframe_data)),
+                         ("prev_cap", POINTER(WSframe_data)),
                          ("opt_comment", c_char_p)]
 
                       

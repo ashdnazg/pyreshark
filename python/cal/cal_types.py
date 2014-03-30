@@ -106,11 +106,13 @@ class ProtocolBase(object):
         self.trees_dict = {TOP_TREE : c_int(NEW_INDEX)}
         
         self.fields_dict = {}
+        self.items_dict = {}
         
         self._proto_index = c_int(cal.wslib.proto_register_protocol(self._name, self._short_name, self._filter_name))
         cal.wslib.register_dissector(self._filter_name, cal.pslib.dissect_pyreshark, self._proto_index)
         
-        self._top_tree = Subtree(GeneralItem(pointer(self._proto_index), self._filter_name), self._items, TOP_TREE)
+        self._top_item = GeneralItem(pointer(self._proto_index), self._filter_name)
+        self._top_tree = Subtree(self._top_item, self._items, TOP_TREE)
         self._top_tree.generate_filter_name("")
         self._top_tree.register_cal(cal)
         self._top_tree.register_proto(self)
@@ -187,7 +189,11 @@ class ProtocolBase(object):
         else:
             self._next_dissector.set(name, length)
                 
-
+    def append_text(self, text, item_name = None):
+        if item_name is None:
+            self._cal.wslib.proto_item_append_text(self._top_item.pointer, c_char_p(text))
+        else:
+            self.items_dict["%s.%s" % (self._filter_name, item_name)].append_text(text)
                 
                 
 class DissectorItem(ItemBase):
@@ -336,8 +342,10 @@ class FieldItem(ItemBase):
         @summary: See ItemBase.
         '''
         super(FieldItem, self).register_proto(proto)
-        if self._filter_name not in proto.fields_dict.keys():
+        if self._filter_name not in proto.fields_dict:
             proto.fields_dict[self._filter_name] = WShf_register_info(pointer(self._index), self._field)
+        if self._filter_name not in proto.items_dict:
+            proto.items_dict[self._filter_name] = self
         
     def get_node_list(self):
         '''
@@ -371,6 +379,9 @@ class FieldItem(ItemBase):
         
         return (addressof(self._strings), str_display)
 
+    def append_text(self, text):
+        if not c_void_p.from_address(addressof(self.pointer)).value is None:
+            self._cal.wslib.proto_item_append_text(self.pointer, c_char_p(text))
             
 class TextItem(FieldItem):
     def __init__(self, name, text, length = 0):
