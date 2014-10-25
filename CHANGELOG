@@ -1,5 +1,6 @@
 0.1.4
 =====
+- Added support for Wireshark 1.12.*
 - Added protocol.items_dict for accessing items from within PyFunctionItems.
 - Added appending text to an existing item.
 - Fixed a bug with float fields
