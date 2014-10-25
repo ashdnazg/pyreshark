@@ -19,7 +19,7 @@ LDFLAGS = $(PLUGIN_LDFLAGS)
 !IFDEF ENABLE_LIBWIRESHARK
 
 !IFNDEF LINK_PLUGIN_WITH
-LINK_PLUGIN_WITH=..\..\epan\libwireshark.lib
+LINK_PLUGIN_WITH=..\..\epan\libwireshark.lib ..\..\wsutil\libwsutil.lib
 !ENDIF 
 
 CFLAGS=/D_NEED_VAR_IMPORT_ $(CFLAGS)
