@@ -28,6 +28,7 @@ import platform
 
 PSLIBNAME_DICT = {"Windows" : "pyreshark.dll", "Linux" : "pyreshark.so"}
 WSLIBNAME_DICT = {"Windows" : "libwireshark.dll", "Linux" : "libwireshark.so"}
+WSUTILLIBNAME_DICT = {"Windows" : "libwsutil.dll", "Linux" : "libwsutil.so"}
 
 class CAL(object):
     
@@ -35,6 +36,7 @@ class CAL(object):
         system = platform.system()
         self.pslib = CDLL(PSLIBNAME_DICT[system])
         self.wslib = CDLL(WSLIBNAME_DICT[system])
+        self.wsutil = CDLL(WSUTILLIBNAME_DICT[system])
        	self.wslib.create_dissector_handle.argtypes = WS_CREATE_DISSECTOR_HANDLE_ARGS
         self.wslib.create_dissector_handle.restype = WS_CREATE_DISSECTOR_HANDLE_RETURN
         self.wslib.dissector_add_uint.argtypes = WS_DISSECTOR_ADD_UINT_ARGS
@@ -81,4 +83,7 @@ class CAL(object):
 
     def error_message(self, message):
         self._message = c_char_p(message)
-        self.wslib.report_failure(self._message)
+        try:
+            self.wslib.report_failure(self._message)
+        except:
+            self.wsutil.report_failure(self._message)

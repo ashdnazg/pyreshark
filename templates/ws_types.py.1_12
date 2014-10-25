@@ -21,21 +21,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, Structure, Union, c_int, c_uint, c_uint8, c_ubyte, c_uint16, c_uint32, c_uint64, c_void_p, c_int32, c_char_p, c_double, c_int64, c_int16
+from ctypes import POINTER, Structure, Union, c_int, c_uint, c_uint8, c_ubyte, c_uint16, c_uint32, c_uint64, c_void_p, c_int32, c_char_p, c_double, c_int64, c_int16, c_size_t
 
 WS_CREATE_DISSECTOR_HANDLE_ARGS = [c_void_p, c_int]
 WS_CREATE_DISSECTOR_HANDLE_RETURN = c_void_p
 WS_DISSECTOR_ADD_UINT_ARGS = [c_char_p, c_uint32, c_void_p]
 WS_DISSECTOR_ADD_STRING_ARGS = [c_char_p, c_char_p, c_void_p]
 
-class WStvb_backing(Structure):
-    pass
+# class WStvb_backing(Structure):
+    # pass
 
-class WStvb_comp(Structure):
+# class WStvb_comp(Structure):
+    # pass
+
+class WStvb_ops(Structure):
     pass
     
-class WUtvbuff_tvbuffs(Union):
-    pass
+# class WUtvbuff_tvbuffs(Union):
+    # pass
     
 class WStvbuff(Structure):
     pass
@@ -104,30 +107,36 @@ class WSrange_string(Structure):
 WSns_time._fields_ = [("secs", c_int), # Should work on most systems
                       ("nsecs", c_int)]
                       
-WStvb_backing._fields_ = [("tvb", POINTER(WStvbuff)),
-                          ("offset", c_int),
-                          ("length", c_int)]
+# WStvb_backing._fields_ = [("tvb", POINTER(WStvbuff)),
+                          # ("offset", c_int),
+                          # ("length", c_int)]
 
-WStvb_comp._fields_ = [("tvbs", c_void_p), # GLIB LISTS NOT IMPLEMENTED FOR NOW
-                       ("start_offsets", POINTER(c_int)),
-                       ("end_offsets", POINTER(c_int))]
+# WStvb_comp._fields_ = [("tvbs", c_void_p), # GLIB LISTS NOT IMPLEMENTED FOR NOW
+                       # ("start_offsets", POINTER(c_int)),
+                       # ("end_offsets", POINTER(c_int))]
 
-WUtvbuff_tvbuffs._fields_ = [("subset", WStvb_backing),
-                             ("composite", WStvb_comp)]
+WStvb_ops._fields_ = [("tvb_size", c_size_t),
+                      ("tvb_free", c_void_p),
+                      ("tvb_offset", c_void_p),
+                      ("tvb_get_ptr", c_void_p),
+                      ("tvb_memcpy", c_void_p),
+                      ("tvb_find_guint8", c_void_p),
+                      ("tvb_pbrk_guint8", c_void_p),
+                      ("tvb_clone", c_void_p)]
+                       
+# WUtvbuff_tvbuffs._fields_ = [("subset", WStvb_backing),
+                             # ("composite", WStvb_comp)]
                       
                       
 WStvbuff._fields_ = [("next", POINTER(WStvbuff)),
-                     ("previous", POINTER(WStvbuff)),
-                     ("type", c_uint),
+                     ("ops", POINTER(WStvb_ops)),
                      ("initialized", c_int),
                      ("flags", c_uint),
                      ("ds_tvb", POINTER(WStvbuff)),
-                     ("tvbuffs", WUtvbuff_tvbuffs),
                      ("real_data", POINTER(c_uint8)),
                      ("length", c_int),
                      ("reported_length", c_int),
-                     ("raw_offset", c_int),
-                     ("free_cb", c_void_p)]
+                     ("raw_offset", c_int)]
                      
                      
 WSaddress._fields_ = [("type", c_uint),
@@ -136,22 +145,20 @@ WSaddress._fields_ = [("type", c_uint),
                       ("data", c_void_p)]
 
 
-WSframe_data_flags._fields_ = [("passed_dfilter"         ,c_uint, 1),
-                               ("dependent_of_displayed" ,c_uint, 1),
-                               ("encoding"               ,c_uint, 1),
-                               ("visited"                ,c_uint, 1),
-                               ("marked"                 ,c_uint, 1),
-                               ("ref_time"               ,c_uint, 1),
-                               ("ignored"                ,c_uint, 1),
-                               ("has_ts"                 ,c_uint, 1),
-                               ("has_if_id"              ,c_uint, 1),
-                               ("has_pack_flags"         ,c_uint, 1)]
+WSframe_data_flags._fields_ = [("passed_dfilter"        , c_uint, 1),
+                               ("dependent_of_displayed", c_uint, 1),
+                               ("encoding"              , c_uint, 1),
+                               ("visited"               , c_uint, 1),
+                               ("marked"                , c_uint, 1),
+                               ("ref_time"              , c_uint, 1),
+                               ("ignored"               , c_uint, 1),
+                               ("has_ts"                , c_uint, 1),
+                               ("has_phdr_comment"      , c_uint, 1),
+                               ("has_user_comment"      , c_uint, 1)]
                                
                                
 WSframe_data._fields_ = [("pfd", c_void_p),
                          ("num", c_uint32),
-                         ("interface_id", c_uint32),
-                         ("pack_flags", c_uint32),
                          ("pkt_len", c_uint32),
                          ("cap_len", c_uint32),
                          ("cum_bytes", c_uint32),
@@ -162,16 +169,16 @@ WSframe_data._fields_ = [("pfd", c_void_p),
                          ("color_filter", c_void_p),
                          ("abs_ts", WSns_time),
                          ("shift_offset", WSns_time),
-                         ("rel_ts", WSns_time),
-                         ("prev_dis", POINTER(WSframe_data)),
-                         ("prev_cap", POINTER(WSframe_data)),
-                         ("opt_comment", c_char_p)]
+                         ("frame_ref_num", c_uint32),
+                         ("prev_dis_num", c_uint32)]
 
                       
 WSpacket_info._fields_ = [("current_proto", c_char_p),
                           ("cinfo", c_void_p),   # Column info
                           ("fd", POINTER(WSframe_data)), # Frame data
                           ("pseudo_header", c_void_p),
+                          ("file_type_subtype", c_int),
+                          ("phdr", c_void_p),
                           ("data_src", c_void_p),
                           ("dl_src", WSaddress),
                           ("dl_dst", WSaddress),
@@ -179,7 +186,6 @@ WSpacket_info._fields_ = [("current_proto", c_char_p),
                           ("net_dst", WSaddress),
                           ("src", WSaddress),
                           ("dst", WSaddress),
-                          ("ethertype", c_uint32),
                           ("ipproto", c_uint32)]
                           # THE REST IS NOT IMPLEMENTED, don't try to initialize new pinfo's.
                           
@@ -190,14 +196,13 @@ WSheader_field_info._fields_ = [("name", c_char_p),
                                 ("strings", c_void_p),
                                 ("bitmask", c_int32),
                                 ("blurb", c_char_p), # Brief description of the field
-                                # The following parameters should be initialized to 0,0,0,0,None,None
-                                # There's a nice const tuple for that named HFILL in ws_consts.py
+                                # The following parameters should be initialized according
+                                # to the nice const tuple named HFILL in ws_consts.py
                                 ("id", c_int),
                                 ("parent", c_int),
                                 ("ref_type", c_int),
-                                ("bitshift", c_int),
-                                ("same_name_next", POINTER(WSheader_field_info)),
-                                ("same_name_prev", POINTER(WSheader_field_info))]
+                                ("same_name_prev_id", c_int),
+                                ("same_name_next", POINTER(WSheader_field_info))]
                                 
 WShf_register_info._fields_ = [("p_id", POINTER(c_int)),
                                ("hfinfo", WSheader_field_info)]
@@ -239,8 +244,8 @@ WSfield_info._fields_ = [("hfinfo", POINTER(WSheader_field_info)),
                          ("appendix_start", c_int),
                          ("appendix_length", c_int),
                          ("tree_type", c_int),
-                         ("rep", c_void_p), # String for GUI tree
                          ("flags", c_uint32),
+                         ("rep", c_void_p), # String for GUI tree
                          ("ds_tvb", POINTER(WStvbuff)),
                          ("value", WSfvalue)]
                          

@@ -37,9 +37,11 @@ ENUM_FILE_NAME = 0
 ENUM_NAME = 1
 ENUM_CAPTION = 2
 ENUMS = [(os.path.join("..","..","epan","ftypes","ftypes.h"), "ftenum", "FIELD TYPES"),
-         (os.path.join("..","..","epan","proto.h"), "base_display_e", "DISPLAY VALUES"),
+         (os.path.join("..","..","epan","proto.h"), "base_display_e", "DISPLAY VALUES"), # until 1.10
+         (os.path.join("..","..","epan","proto.h"), "field_display_e", "DISPLAY VALUES"), # since 1.12 
          (os.path.join("..","..","epan","time_fmt.h"), "absolute_time_display_e", "DISPLAY VALUES (TIME)"),
-         (os.path.join("..","..","epan","column_info.h"), "", "COLUMN IDS"),]
+         (os.path.join("..","..","epan","column_info.h"), "", "COLUMN IDS"),
+         (os.path.join("..","..","epan","column-utils.h"), "", "COLUMN IDS"),]
 
          
 DEFINE = "#define"
@@ -48,7 +50,13 @@ DEFINE_PREFIX = 1
 DEFINE_CAPTION = 2
 
 DEFINES = [(os.path.join("..","..","epan","proto.h"), "enc_", "ENCODINGS"),
-           (os.path.join("..","..","epan","proto.h"), "base_","DISPLAY VALUES (MORE)")]
+           (os.path.join("..","..","epan","proto.h"), "base_", "DISPLAY VALUES (MORE)")]
+
+MACRO_FILE_NAME = 0
+MACRO_NAME = 1
+MACRO_CAPTION = 2
+
+MACROS = [(os.path.join("..","..","epan","proto.h"), "hfill", "HEADER FILL MACRO")]
 
 MISC_CAPTION = "MISC"
 MISC = """
@@ -58,8 +66,7 @@ elif "ENC_UTF8" in dir():
     ENC_TEXT_DEFAULT = ENC_UTF8
 else:
     ENC_TEXT_DEFAULT = ENC_NA
-    
-HFILL = (0, 0, 0, 0, None, None)
+
 
 DATA = "data"
 REMAINING_LENGTH = -1
@@ -67,7 +74,7 @@ REMAINING_LENGTH = -1
 
 def get_enum(file_name, enum_name):
     all_values = []
-    current_value = 0
+    count = 0
     in_file = open(file_name, "rb")
     
     found = False
@@ -88,12 +95,16 @@ def get_enum(file_name, enum_name):
             if entry != "":
                 if "=" in entry:
                     (name, current_value) = entry.split("=")
-                    current_value = int(current_value)
+                    try:
+                        count = int(current_value)
+                    except:
+                        pass
                 else:
                     name = entry
+                    current_value = count
                     
                 all_values.append((name, str(current_value)))
-                current_value += 1
+                count += 1
             line = in_file.readline()
         
         if found or enum_name in line:
@@ -104,35 +115,68 @@ def get_enum(file_name, enum_name):
     in_file.close()
     return all_values
 
-def get_define(file_name, define_prefix):
+def fix_macro(s):
+    values = s.replace(" ", "").split(",")
+    fixed_values = []
+    for value in values:
+        try:
+            v = int(value)
+        except ValueError:
+            if value == "NULL":
+                v = None
+            else:
+                v = 0
+        fixed_values.append(v)
+    return tuple(fixed_values)
+    
+def get_define(file_name, define_prefix, is_macro = False):
     all_values = []
     in_file = open(file_name, "rb")
     
     line = in_file.readline()
     while line != "":
-        if line.strip().lower().startswith(DEFINE) and line.strip().lower().replace(DEFINE,"").strip().startswith(define_prefix):
+        if (line.strip().lower().startswith(DEFINE) and line.strip().lower().replace(DEFINE,"").strip().startswith(define_prefix) and
+                (not is_macro or line.strip().lower().replace(DEFINE,"").strip()[len(define_prefix)].strip() == "")):
             entry = line.split("/")[0].strip()[len(DEFINE):].strip().replace("\t", " ")
             space_position = entry.index(" ")
-            all_values.append((entry[:space_position].strip(), entry[space_position:].strip()))
+            name, value = entry[:space_position].strip(), entry[space_position:].strip()
+            all_values.append((name, value))
         line = in_file.readline()
     
     return all_values
+    
     
 def main(argv):
     out_file = open(argv[1], "wb")
     out_file.write(HEADER)
     for enum in ENUMS:
-        out_file.write("%s\n" % ((" %s " % (enum[ENUM_CAPTION],)).center(CAPTION_WIDTH, COMMENT_CHAR),))
-        for name, value in get_enum(enum[ENUM_FILE_NAME], enum[ENUM_NAME]):
-            out_file.write("%s = %s\n" % (name, value))
-        out_file.write("\n")
+        if os.path.exists(enum[ENUM_FILE_NAME]):
+            entries = get_enum(enum[ENUM_FILE_NAME], enum[ENUM_NAME])
+            if len(entries) > 0:
+                out_file.write("%s\n" % ((" %s " % (enum[ENUM_CAPTION],)).center(CAPTION_WIDTH, COMMENT_CHAR),))
+                for name, value in entries:
+                    out_file.write("%s = %s\n" % (name, value))
+                out_file.write("\n")
     
     for define in DEFINES:
-        out_file.write("%s\n" % ((" %s " % (define[DEFINE_CAPTION],)).center(CAPTION_WIDTH, COMMENT_CHAR),))
-        for name, value in get_define(define[DEFINE_FILE_NAME], define[DEFINE_PREFIX]):
-            out_file.write("%s = %s\n" % (name, value))
-        out_file.write("\n")
+        if os.path.exists(define[DEFINE_FILE_NAME]):
+            entries = get_define(define[DEFINE_FILE_NAME], define[DEFINE_PREFIX])
+            if len(entries) > 0:
+                out_file.write("%s\n" % ((" %s " % (define[DEFINE_CAPTION],)).center(CAPTION_WIDTH, COMMENT_CHAR),))
+                for name, value in entries:
+                    out_file.write("%s = %s\n" % (name, value))
+                out_file.write("\n")
     
+    for macro in MACROS:
+        if os.path.exists(macro[MACRO_FILE_NAME]):
+            entries = get_define(macro[MACRO_FILE_NAME], macro[MACRO_NAME], True)
+            if len(entries) > 0:
+                name, value = entries[0]
+                value = fix_macro(value)
+                out_file.write("%s\n" % ((" %s " % (macro[MACRO_CAPTION],)).center(CAPTION_WIDTH, COMMENT_CHAR),))
+                out_file.write("%s = %s\n" % (name, value))
+                out_file.write("\n")
+        
     out_file.write("%s\n%s" % ((" %s " % (MISC_CAPTION,)).center(CAPTION_WIDTH, COMMENT_CHAR), MISC))
     out_file.close()
 

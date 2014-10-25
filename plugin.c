@@ -34,24 +34,27 @@
 #include "moduleinfo.h"
 
 #if VERSION_MINOR > 8
-#define WS_BUILD_DLL
-#include "ws_symbol_export.h"
+  #define WS_BUILD_DLL
+  #include "ws_symbol_export.h"
+  #ifndef WS_DLL_PUBLIC_DEF
+    #define WS_DLL_PUBLIC_DEF WS_DLL_PUBLIC_NOEXTERN
+  #endif
 #else
-#define WS_DLL_PUBLIC_NOEXTERN G_MODULE_EXPORT
+  #define WS_DLL_PUBLIC_DEF G_MODULE_EXPORT
 #endif
 
 #ifndef ENABLE_STATIC
-WS_DLL_PUBLIC_NOEXTERN const gchar version[] = VERSION;
+WS_DLL_PUBLIC_DEF const gchar version[] = VERSION;
 
 /* Start the functions we need for the plugin stuff */
 
-WS_DLL_PUBLIC_NOEXTERN void
+WS_DLL_PUBLIC_DEF void
 plugin_register (void)
 {
     {extern void init_pyreshark (void); init_pyreshark();}
 }
 
-WS_DLL_PUBLIC_NOEXTERN void
+WS_DLL_PUBLIC_DEF void
 plugin_reg_handoff(void)
 {
     {extern void handoff_pyreshark (void); handoff_pyreshark();}

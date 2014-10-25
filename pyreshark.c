@@ -36,12 +36,22 @@
 
 #include <epan/packet.h>
 #include <epan/expert.h>
-#include <epan/filesystem.h>
 
+#if VERSION_MINOR > 10
+#include <wsutil/filesystem.h>
+#else
+#include <epan/filesystem.h>
+#endif
 
 int g_num_dissectors = 0;
 py_dissector_t **g_dissectors = NULL;
 python_lib_t *g_python_lib;
+
+
+#if VERSION_MINOR > 10
+static expert_field ei_pyreshark_protocol_not_found = EI_INIT;
+#endif
+
 
 void
 init_pyreshark(void)
@@ -102,12 +112,17 @@ dissect_pyreshark(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
             return;
         }
     }
-    
+
     if (tree)
     {
+#if VERSION_MINOR > 10
+        expert_add_info_format(pinfo, NULL, &ei_pyreshark_protocol_not_found, 
+                               "PyreShark: protocol %s not found", pinfo->current_proto);
+#else
         expert_add_info_format(pinfo, NULL, PI_MALFORMED,
                     PI_ERROR, "PyreShark: protocol %s not found",
                     pinfo->current_proto);
+#endif    
     }
 }
 
@@ -208,10 +223,7 @@ advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_ , int *p_off
 void
 set_column_text(tvb_and_tree_t *tvb_and_tree _U_, packet_info *pinfo, int *p_offset _U_, set_column_text_params_t *params)
 {
-    if (check_col(pinfo->cinfo, params->col_id))
-    {
-        col_add_str(pinfo->cinfo, params->col_id, params->text);
-    }
+    col_add_str(pinfo->cinfo, params->col_id, params->text);
 }
 
 void call_next_dissector(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo, int *p_offset, call_next_dissector_params_t *params)
