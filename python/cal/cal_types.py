@@ -190,6 +190,11 @@ class ProtocolBase(object):
             self._next_dissector.set(name, length)
                 
     def append_text(self, text, item_name = None):
+        '''
+        @summary: Appends text to an already read tree Item.
+        @param text: The text to be added.
+        @param item_name: The item's filter name.
+        '''
         if item_name is None:
             self._cal.wslib.proto_item_append_text(self._top_item.pointer, c_char_p(text))
         else:
@@ -427,7 +432,7 @@ class Subtree(ItemBase):
         super(Subtree, self).register_proto(proto)
         if self._tree_name == AUTO_TREE:
             self._tree_name = self.get_parent_item()._filter_name
-        if self._tree_name not in proto.trees_dict.keys():
+        if self._tree_name not in proto.trees_dict:
             proto.trees_dict[self._tree_name] = c_int(NEW_INDEX)
         self._params.p_index = pointer(proto.trees_dict[self._tree_name])
         
