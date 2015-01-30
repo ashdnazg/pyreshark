@@ -656,3 +656,14 @@ class Packet(object):
             _offset = offset
             
         return unpack(format, self.buffer[_offset:_offset+calcsize(format)])
+
+    def expert_add_info_format(self,
+                               proto_item,
+                               severity,
+                               event_group,
+                               message):
+        self._cal.wslib.expert_add_info_format(self._p_pinfo,
+                                               proto_item,
+                                               severity,
+                                               event_group,
+                                               c_char_p(message))
