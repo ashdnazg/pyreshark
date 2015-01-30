@@ -24,6 +24,7 @@
 from ctypes import POINTER, pointer, addressof, CDLL, c_void_p, cast, c_char_p
 from ps_types import PSdissection_node, PSpy_dissector
 from ws_types import WS_CREATE_DISSECTOR_HANDLE_ARGS, WS_CREATE_DISSECTOR_HANDLE_RETURN, WS_DISSECTOR_ADD_UINT_ARGS, WS_DISSECTOR_ADD_STRING_ARGS
+from ws_types import WS_EXPERT_ADD_INFO_FORMAT_ARGS, WS_EXPERT_ADD_INFO_FORMAT_RETURN
 import platform
 
 PSLIBNAME_DICT = {"Windows" : "pyreshark.dll", "Linux" : "pyreshark.so"}
@@ -41,6 +42,8 @@ class CAL(object):
         self.wslib.create_dissector_handle.restype = WS_CREATE_DISSECTOR_HANDLE_RETURN
         self.wslib.dissector_add_uint.argtypes = WS_DISSECTOR_ADD_UINT_ARGS
         self.wslib.dissector_add_string.argtypes = WS_DISSECTOR_ADD_STRING_ARGS
+        self.wslib.expert_add_info_format.argtypes = WS_EXPERT_ADD_INFO_FORMAT_ARGS
+        self.wslib.expert_add_info_format.restype = WS_EXPERT_ADD_INFO_FORMAT_RETURN
         
     def create_dissection_node(self, func, params):
         '''
