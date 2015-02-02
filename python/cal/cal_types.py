@@ -206,6 +206,9 @@ class ProtocolBase(object):
             self.items_dict["%s.%s" % (self._filter_name, item_name)].append_text(text)
 
     def register_preference(self):
+        '''
+        @summary: Registers this protocol as having user defined preferences
+        '''
         self._pref_index = c_int(self._cal.wslib.prefs_register_protocol(self._proto_index, c_void_p(0)))
                 
                 
@@ -685,7 +688,16 @@ class Packet(object):
 
 
 class StringPreference(object):
+    '''
+    @summary: Defines a preference with a string value.
+    '''
     def __init__(self, title, description, starting_value=""):
+        '''
+        @summary: A constructor.
+        @param title: A short human-readable name
+        @param description: A longer human-readable description
+        @param starting_value: The initial value for this preference (defaults to "")
+        '''
         self.title = c_char_p(title)
         self.description = c_char_p(description)
         self.string_pref = c_char_p(starting_value)
@@ -694,6 +706,12 @@ class StringPreference(object):
         self._cal = None
 
     def register(self, cal, pref_index, name):
+        '''
+        @summary: Registers the preference with Wireshark
+        @param cal: A CAL object.
+        @param pref_index: The order to display the user preference
+        @param name: The name used for the module in the preferences file
+        '''
         self._cal = cal
         self._pref_index = pref_index
         self.name = c_char_p(name)
@@ -704,13 +722,24 @@ class StringPreference(object):
                                                          byref(self.string_pref))
 
     def get_value(self):
+        '''
+        @summary: Returns the current value of the preference
+        '''
         return self.string_pref.value
 
     value = property(get_value)
 
 
 class BoolPreference(object):
+    '''
+    @summary: Defines a preference with an Boolean value.
+    '''
     def __init__(self, title, description):
+        '''
+        @summary: A constructor.
+        @param title: A short human-readable name
+        @param description: A longer human-readable description 
+        '''
         self.title = c_char_p(title)
         self.description = c_char_p(description)
         self.bool_pref = c_int(0)
@@ -719,6 +748,12 @@ class BoolPreference(object):
         self._cal = None
 
     def register(self, cal, pref_index, name):
+        '''
+        @summary: Registers the preference with Wireshark
+        @param cal: A CAL object.
+        @param pref_index: The order to display the user preference
+        @param name: The name used for the module in the preferences file
+        '''
         self._cal = cal
         self._pref_index = pref_index
         self.name = c_char_p(name)
@@ -729,18 +764,42 @@ class BoolPreference(object):
                                                        byref(self.bool_pref))
 
     def get_value(self):
+        '''
+        @summary: Returns the current value of the preference
+        '''
         return self.bool_pref.value
 
     value = property(get_value)
 
 
 class EnumValue(object):
+    '''
+    @summary: Defines an enumerated preference type.
+    '''
     def __init__(self, name, description, value):
+        '''
+        @summary: A constructor.
+        @param name: A short human-readable name
+        @param description: A longer human-readable description
+        @param value: The value of this enumeration
+        '''
         self._val = WSenum_val(name, description, value)
 
 
 class EnumPreference(object):
+    '''
+    @summary: Defines a preference with an enumerated value.
+    '''
     def __init__(self, title, description, default_val, enums, radio_buttons=False, add_nulls=True):
+        '''
+        @summary: A constructor.
+        @param title: A short human-readable name
+        @param description: A longer human-readable description
+        @param default_val: The default enum index
+        @param enums: A list of EnumValue objects
+        @param radio_buttons Use radio buttons instead of a dropdown (defaults to False)
+        @param add_nulls: Add a null selection to the enums to be used as the default value (defaults to True) 
+        '''
         self.title = c_char_p(title)
         self.description = c_char_p(description)
         self.name = None
@@ -754,6 +813,12 @@ class EnumPreference(object):
         self.enums = _enums_array(*[enum._val for enum in enums])
 
     def register(self, cal, pref_index, name):
+        '''
+        @summary: Registers the preference with Wireshark
+        @param cal: A CAL object.
+        @param pref_index: The order to display the user preference
+        @param name: The name used for the module in the preferences file
+        '''
         self._cal = cal
         self._pref_index = pref_index
         self.name = c_char_p(name)
@@ -766,6 +831,9 @@ class EnumPreference(object):
                                                        self.radio_buttons)
 
     def get_value(self):
+        '''
+        @summary: Returns the current value of the preference
+        '''
         return self.enum_pref.value
 
     value = property(get_value)
