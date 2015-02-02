@@ -50,7 +50,8 @@ DEFINE_PREFIX = 1
 DEFINE_CAPTION = 2
 
 DEFINES = [(os.path.join("..","..","epan","proto.h"), "enc_", "ENCODINGS"),
-           (os.path.join("..","..","epan","proto.h"), "base_", "DISPLAY VALUES (MORE)")]
+           (os.path.join("..","..","epan","proto.h"), "base_", "DISPLAY VALUES (MORE)"),
+           (os.path.join("..","..","epan","proto.h"), "pi_", "EXPERT INFO")]
 
 MACRO_FILE_NAME = 0
 MACRO_NAME = 1
