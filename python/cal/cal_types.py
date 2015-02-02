@@ -665,11 +665,11 @@ class Packet(object):
             
         return unpack(format, self.buffer[_offset:_offset+calcsize(format)])
 
-    def expert_add_info_format(self,
-                               severity,
-                               event_group,
-                               message,
-                               proto_item=None):
+    def add_expert_info(self,
+                        severity,
+                        event_group,
+                        message,
+                        proto_item=None):
         '''
         @summary: Adds "Expert Info" or "anomalies" about the packet
         @param severity: The severity of the anomaly (a PI_* severity from ws_consts.py)
