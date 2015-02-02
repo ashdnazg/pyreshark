@@ -666,10 +666,17 @@ class Packet(object):
         return unpack(format, self.buffer[_offset:_offset+calcsize(format)])
 
     def expert_add_info_format(self,
-                               proto_item,
                                severity,
                                event_group,
-                               message):
+                               message,
+                               proto_item=None):
+        '''
+        @summary: Adds "Expert Info" or "anomalies" about the packet
+        @param severity: The severity of the anomaly (a PI_* severity from ws_consts.py)
+        @param event_group: The common group of the anomaly (a PI_* grouping from ws_consts.py)
+        @param message: A short description or explanation of the anomaly
+        @param proto_item: An associated protocol item to the anomaly (default: None)
+        '''
         self._cal.wslib.expert_add_info_format(self._p_pinfo,
                                                proto_item,
                                                severity,
