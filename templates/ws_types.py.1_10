@@ -103,6 +103,15 @@ class WSstring_string(Structure):
 class WSrange_string(Structure):
     pass    
     
+class WSenum_val(Structure):
+    """
+    Definition of a value for an enumerated type.
+    "name" is the the name one would use on the command line for the value.
+    "description" is the description of the value, used in combo boxes option menus.
+    "value" is the value.
+    """
+    pass
+
 WSns_time._fields_ = [("secs", c_int), # Should work on most systems
                       ("nsecs", c_int)]
                       
@@ -270,3 +279,7 @@ WSvalue_string._fields_ = [("value", c_int32),
 WSrange_string._fields_= [("value_min", c_int32),
                           ("value_max", c_int32),
                           ("str", c_char_p)]
+
+WSenum_val._fields_ = [("name", c_char_p),
+                       ("description", c_char_p),
+                       ("value", c_int32)]
