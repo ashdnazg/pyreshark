@@ -21,10 +21,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, c_void_p
+from ctypes import POINTER, pointer, c_int, c_char, addressof, c_char_p, c_void_p, byref, c_bool
 from struct import unpack, calcsize
 from ps_types import PStvbuff_and_tree, PSdissect_func, PS_DISSECT_FUNC_ARGS
-from ws_types import WSheader_field_info, WShf_register_info, WSvalue_string, WStrue_false_string, WSrange_string
+from ws_types import WSheader_field_info, WShf_register_info, WSvalue_string, WStrue_false_string, WSrange_string, WSenum_val
 from param_structs import PSadd_tree_item_params, PSadd_text_item_params, PSpush_tree_params, PSpop_tree_params, PSpush_tvb_params, PSpop_tvb_params, PSadvance_offset_params, PSset_column_text_params, PScall_next_dissector_params
 from cal_consts import ENC_READ_LENGTH, TOP_TREE, DEFAULT_TREE, AUTO_TREE, NO_MASK, FIELD_TYPES_DICT, NEW_INDEX, OFFSET_FLAGS_READ_LENGTH, OFFSET_FLAGS_NONE
 from ws_consts import HFILL, COL_PROTOCOL, ENC_BIG_ENDIAN, ENC_NA, FT_NONE, DATA, REMAINING_LENGTH, BASE_RANGE_STRING
@@ -130,6 +130,11 @@ class ProtocolBase(object):
         hf_array_type = WShf_register_info * len(self.fields_dict)
         self._hf_array = hf_array_type(*self.fields_dict.values())
         cal.wslib.proto_register_field_array(self._proto_index, self._hf_array, len(self._hf_array))
+
+        if hasattr(self, "_prefs"):
+            self.register_preference()
+            for (pref_name, pref) in self._prefs.iteritems():
+                pref.register(self._cal, self._pref_index, pref_name)
         
     def handoff(self):
         '''
@@ -199,6 +204,12 @@ class ProtocolBase(object):
             self._cal.wslib.proto_item_append_text(self._top_item.pointer, c_char_p(text))
         else:
             self.items_dict["%s.%s" % (self._filter_name, item_name)].append_text(text)
+
+    def register_preference(self):
+        '''
+        @summary: Registers this protocol as having user defined preferences
+        '''
+        self._pref_index = c_int(self._cal.wslib.prefs_register_protocol(self._proto_index, c_void_p(0)))
                 
                 
 class DissectorItem(ItemBase):
@@ -656,3 +667,173 @@ class Packet(object):
             _offset = offset
             
         return unpack(format, self.buffer[_offset:_offset+calcsize(format)])
+
+    def add_expert_info(self,
+                        severity,
+                        event_group,
+                        message,
+                        proto_item=None):
+        '''
+        @summary: Adds "Expert Info" or "anomalies" about the packet
+        @param severity: The severity of the anomaly (a PI_* severity from ws_consts.py)
+        @param event_group: The common group of the anomaly (a PI_* grouping from ws_consts.py)
+        @param message: A short description or explanation of the anomaly
+        @param proto_item: An associated protocol item to the anomaly (default: None)
+        '''
+        self._cal.wslib.expert_add_info_format(self._p_pinfo,
+                                               proto_item,
+                                               severity,
+                                               event_group,
+                                               c_char_p(message))
+
+
+class StringPreference(object):
+    '''
+    @summary: Defines a preference with a string value.
+    '''
+    def __init__(self, title, description, starting_value=""):
+        '''
+        @summary: A constructor.
+        @param title: A short human-readable name
+        @param description: A longer human-readable description
+        @param starting_value: The initial value for this preference (defaults to "")
+        '''
+        self.title = c_char_p(title)
+        self.description = c_char_p(description)
+        self.string_pref = c_char_p(starting_value)
+        self.name = None
+        self._pref_index = None
+        self._cal = None
+
+    def register(self, cal, pref_index, name):
+        '''
+        @summary: Registers the preference with Wireshark
+        @param cal: A CAL object.
+        @param pref_index: The order to display the user preference
+        @param name: The name used for the module in the preferences file
+        '''
+        self._cal = cal
+        self._pref_index = pref_index
+        self.name = c_char_p(name)
+        self._cal.wslib.prefs_register_string_preference(self._pref_index,
+                                                         self.name,
+                                                         self.title,
+                                                         self.description,
+                                                         byref(self.string_pref))
+
+    def get_value(self):
+        '''
+        @summary: Returns the current value of the preference
+        '''
+        return self.string_pref.value
+
+    value = property(get_value)
+
+
+class BoolPreference(object):
+    '''
+    @summary: Defines a preference with an Boolean value.
+    '''
+    def __init__(self, title, description):
+        '''
+        @summary: A constructor.
+        @param title: A short human-readable name
+        @param description: A longer human-readable description 
+        '''
+        self.title = c_char_p(title)
+        self.description = c_char_p(description)
+        self.bool_pref = c_int(0)
+        self.name = None
+        self._pref_index = None
+        self._cal = None
+
+    def register(self, cal, pref_index, name):
+        '''
+        @summary: Registers the preference with Wireshark
+        @param cal: A CAL object.
+        @param pref_index: The order to display the user preference
+        @param name: The name used for the module in the preferences file
+        '''
+        self._cal = cal
+        self._pref_index = pref_index
+        self.name = c_char_p(name)
+        self._cal.wslib.prefs_register_bool_preference(self._pref_index,
+                                                       self.name,
+                                                       self.title,
+                                                       self.description,
+                                                       byref(self.bool_pref))
+
+    def get_value(self):
+        '''
+        @summary: Returns the current value of the preference
+        '''
+        return self.bool_pref.value
+
+    value = property(get_value)
+
+
+class EnumValue(object):
+    '''
+    @summary: Defines an enumerated preference type.
+    '''
+    def __init__(self, name, description, value):
+        '''
+        @summary: A constructor.
+        @param name: A short human-readable name
+        @param description: A longer human-readable description
+        @param value: The value of this enumeration
+        '''
+        self._val = WSenum_val(name, description, value)
+
+
+class EnumPreference(object):
+    '''
+    @summary: Defines a preference with an enumerated value.
+    '''
+    def __init__(self, title, description, default_val, enums, radio_buttons=False, add_nulls=True):
+        '''
+        @summary: A constructor.
+        @param title: A short human-readable name
+        @param description: A longer human-readable description
+        @param default_val: The default enum index
+        @param enums: A list of EnumValue objects
+        @param radio_buttons Use radio buttons instead of a dropdown (defaults to False)
+        @param add_nulls: Add a null selection to the enums to be used as the default value (defaults to True) 
+        '''
+        self.title = c_char_p(title)
+        self.description = c_char_p(description)
+        self.name = None
+        self._pref_index = None
+        self._cal = None
+        self.radio_buttons = c_bool(radio_buttons)
+        self.enum_pref = c_int(default_val)
+        if add_nulls:
+            enums.append(EnumValue(None, None, -1))
+        _enums_array = WSenum_val * len(enums)
+        self.enums = _enums_array(*[enum._val for enum in enums])
+
+    def register(self, cal, pref_index, name):
+        '''
+        @summary: Registers the preference with Wireshark
+        @param cal: A CAL object.
+        @param pref_index: The order to display the user preference
+        @param name: The name used for the module in the preferences file
+        '''
+        self._cal = cal
+        self._pref_index = pref_index
+        self.name = c_char_p(name)
+        self._cal.wslib.prefs_register_enum_preference(self._pref_index,
+                                                       self.name,
+                                                       self.title,
+                                                       self.description,
+                                                       byref(self.enum_pref),
+                                                       byref(self.enums),
+                                                       self.radio_buttons)
+
+    def get_value(self):
+        '''
+        @summary: Returns the current value of the preference
+        '''
+        return self.enum_pref.value
+
+    value = property(get_value)
