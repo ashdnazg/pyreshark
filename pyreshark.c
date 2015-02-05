@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
- 
+
 /* The following two lines prevent redefinition of ssize_t on win64*/
 #define _SSIZE_T_DEFINED
 #define QT_VERSION
@@ -59,27 +59,58 @@ init_pyreshark(void)
     char *py_init_path;
     char *python_cmd;
     void *py_init_file;
+    char *python_datafile_path;
+    char *python_persconffile_path;
     python_version_t py_version = PYTHON_VERSION_NOT_SET;
-    
+
     g_python_lib = load_python(&py_version);
     if (g_python_lib == NULL)
     {
         return;
     }
-    python_cmd = g_strdup_printf("import sys;sys.path.append(\'%s\')", get_datafile_path(PYTHON_DIR));
+
+    python_datafile_path = get_datafile_path(PYTHON_DIR);
+    if (NULL == python_datafile_path)
+    {
+        return;
+    }
+
+    python_persconffile_path = get_persconffile_path(PYTHON_DIR, 1);
+    if (NULL == python_persconffile_path)
+    {
+        g_free(python_datafile_path);
+        return;
+    }
+
+    /* Add the personal python datafile path and the global python
+     * datafile path to the python path */
+    python_cmd = g_strdup_printf("import sys;sys.path.append(\'%s\');sys.path.append(\'%s\')",
+				 python_persconffile_path, python_datafile_path);
     g_python_lib->PyRun_SimpleStringFlags(python_cmd, NULL);
     g_free(python_cmd);
-    
-    py_init_path = get_datafile_path(PYTHON_DIR G_DIR_SEPARATOR_S PYRESHARK_INIT_FILE);
+    g_free(python_datafile_path);
+    g_free(python_persconffile_path);
+
+    /* Try to load pyreshark from the personal config directory first */
+    py_init_path = get_persconffile_path(PYTHON_DIR G_DIR_SEPARATOR_S PYRESHARK_INIT_FILE, 1);
+
+    if (!g_file_test(py_init_path, G_FILE_TEST_EXISTS))
+    {
+        /* We could not load from the personal config directory,
+         * so fall back to the global one */
+        g_free(py_init_path);
+        py_init_path = get_datafile_path(PYTHON_DIR G_DIR_SEPARATOR_S PYRESHARK_INIT_FILE);
+    }
+
     py_init_file = g_python_lib->PyFile_FromString((char *)py_init_path, (char *)"rb");
-    
-    if (NULL == py_init_file) 
+    if (NULL == py_init_file)
     {
         printf("Can't open Pyreshark init file: %s\n", py_init_path);
         g_free(py_init_path);
         return;
     }
     g_free(py_init_path);
+
     if (py_version == PYTHON_VERSION_27)
     {
         g_python_lib->PyRun_SimpleFileExFlags(g_python_lib->PyFile_AsFile(py_init_file), PYRESHARK_INIT_FILE, FALSE, NULL);
@@ -99,11 +130,11 @@ handoff_pyreshark(void)
     }
 }
 
-void 
+void
 dissect_pyreshark(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 {
     int i;
-    
+
     for (i=0;i<g_num_dissectors; i++)
     {
         if (strcmp(g_dissectors[i]->name, pinfo->current_proto) == 0)
@@ -116,23 +147,23 @@ dissect_pyreshark(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
     if (tree)
     {
 #if VERSION_MINOR > 10
-        expert_add_info_format(pinfo, NULL, &ei_pyreshark_protocol_not_found, 
+        expert_add_info_format(pinfo, NULL, &ei_pyreshark_protocol_not_found,
                                "PyreShark: protocol %s not found", pinfo->current_proto);
 #else
         expert_add_info_format(pinfo, NULL, PI_MALFORMED,
                     PI_ERROR, "PyreShark: protocol %s not found",
                     pinfo->current_proto);
-#endif    
+#endif
     }
 }
 
-void 
+void
 dissect_proto(py_dissector_t *py_dissector, tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
 {
     int i;
     int offset = 0;
     tvb_and_tree_t tvb_and_tree = {tvb, tree};;
-    
+
     for (i=0;i<py_dissector->length;i++)
     {
         py_dissector->dissection_chain[i]->func(&tvb_and_tree, pinfo, &offset, py_dissector->dissection_chain[i]->params);
@@ -140,7 +171,7 @@ dissect_proto(py_dissector_t *py_dissector, tvbuff_t *tvb, packet_info *pinfo, p
 }
 
 
-void 
+void
 register_dissectors_array(int num_dissectors, py_dissector_t ** dissectors_array)
 {
     g_num_dissectors = num_dissectors;
@@ -186,16 +217,16 @@ push_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pu
 {
     guint8 *data;
     tvbuff_t *new_tvb;
-    
+
     data = (guint8 *) g_malloc(params->length);
     memcpy(data, params->data, params->length);
     *(params->p_old_offset) = *p_offset;
     *(params->p_old_tvb) = tvb_and_tree->tvb;
-    
+
     new_tvb = tvb_new_child_real_data(tvb_and_tree->tvb, data, params->length, params->length);
     tvb_set_free_cb(new_tvb, g_free);
     add_new_data_source(pinfo, new_tvb, params->name);
-    
+
     tvb_and_tree->tvb = new_tvb;
     *p_offset = 0;
 }
@@ -207,14 +238,14 @@ pop_tvb(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_, int *p_offset, pop
     tvb_and_tree->tvb = *(params->p_old_tvb);
 }
 
-void 
+void
 advance_offset(tvb_and_tree_t *tvb_and_tree, packet_info *pinfo _U_ , int *p_offset, advance_offset_params_t *params)
 {
-    if (params->flags == OFFSET_FLAGS_READ_LENGTH || params->flags == OFFSET_FLAGS_READ_LENGTH_INCLUDING) 
+    if (params->flags == OFFSET_FLAGS_READ_LENGTH || params->flags == OFFSET_FLAGS_READ_LENGTH_INCLUDING)
     {
         *p_offset += get_uint_value(tvb_and_tree->tvb, *p_offset, params->length, params->encoding);
     }
-    if (params->flags == OFFSET_FLAGS_NONE || params->flags == OFFSET_FLAGS_READ_LENGTH) 
+    if (params->flags == OFFSET_FLAGS_NONE || params->flags == OFFSET_FLAGS_READ_LENGTH)
     {
         *p_offset += params->length;
     }
@@ -239,7 +270,7 @@ guint32
 get_uint_value(tvbuff_t *tvb, gint offset, gint length, const guint encoding)
 {
     switch (length) {
-    
+
     case 1:
         return tvb_get_guint8(tvb, offset);
     case 2:

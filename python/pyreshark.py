@@ -25,25 +25,25 @@ Don't import this, as it relies on sys being already imported in the C code
 import os.path
 from glob import glob
 import traceback
+import pyreshark_locator
 
 for directory in sys.path:
     if os.path.realpath(directory) == os.path.realpath("."):
         sys.path.remove(directory)
         break
 
-PYRESHARK_DIR = sys.path[-1]
+PYRESHARK_DIR = pyreshark_locator.module_path()
 PROTOCOLS_DIR = os.path.join(PYRESHARK_DIR, "protocols")
-
 
 # The following is to handle the situation where the user doesn't have enough privileges to open the logs.
 try:
-    sys.stdout = open(os.path.join("%s" % (sys.path[-1],),"out.log") ,"wb")
-    sys.stderr = open(os.path.join("%s" % (sys.path[-1],),"err.log") ,"wb")
+    sys.stdout = open(os.path.join("%s" % (PYRESHARK_DIR,),"out.log") ,"wb")
+    sys.stderr = open(os.path.join("%s" % (PYRESHARK_DIR,),"err.log") ,"wb")
 except:
     pass
 
 sys.path.append(PROTOCOLS_DIR)
-    
+
 import cal
 
 class PyreShark(object):
@@ -57,7 +57,7 @@ class PyreShark(object):
         self._protocols = []
         self._cal = cal.CAL()
         protocol_files = glob(os.path.join("%s" % (PROTOCOLS_DIR,), "*.py"))
-        
+
         for p_file in protocol_files:
             try:
                 proto_module = __import__(p_file.replace("%s%s" % (PROTOCOLS_DIR, os.path.sep), "").replace(".py", ""))
@@ -67,9 +67,9 @@ class PyreShark(object):
                 message = "Pyreshark error:\n" + "\n".join(exc[-3:])
                 self._cal.error_message(message)
                 traceback.print_exc(file=sys.stderr)
-        
+
         self._cal.register_protocols(self._protocols)
-        
+
     def handoff(self):
         '''
         @summary: Calls the handoff function in each one of the protocols.
