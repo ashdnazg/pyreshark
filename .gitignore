@@ -16,3 +16,5 @@ dist/*
 .libs/*
 Makefile
 Makefile.in
+python/cal/ws_consts.py
+python/cal/ws_types.py
