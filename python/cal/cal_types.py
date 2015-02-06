@@ -620,13 +620,44 @@ class Packet(object):
         @param text: The text to be added.
         @param length: The number of bytes that'll be marked when selecting the item. The packet's offset is not advanced. (default: 0)
         @param offset: The beginning offset for the marked bytes. If set to None, offset=self.offset. (default: None)
+        @return: the newly created item
         '''
         if offset is None:
             _offset = self.offset
         else:
             _offset = offset
-        self._cal.wslib.proto_tree_add_text(self.p_new_tree, self.p_new_tvb, _offset, length, text)
-    
+        return self._cal.wslib.proto_tree_add_text(self.p_new_tree, self.p_new_tvb, _offset, length, text)
+
+    def add_uint(self, item_key, value, length=0, offset=None, tree=None):
+        '''
+        @summary: Add one of FT_UINT8, FT_UINT16, FT_UINT24 or FT_UINT32 to a proto_tree.
+        @param item_key: The key of the item in the items_dict
+        @param value: data to display
+        @param length: The number of bytes that'll be marked when selecting the item. The packet's offset is not advanced. (default: 0)
+        @param offset: The beginning offset for the marked bytes. If set to None, offset=self.offset. (default: None)
+        @param tree: the tree to append this item to (default: parent)
+        @return: the newly created item
+        '''
+        tree = tree or self.p_new_tree
+        if offset is None:
+            offset = self.offset
+        return self._cal.wslib.proto_tree_add_uint(tree, self._items_dict[item_key]._index, self.p_new_tvb, offset, length, value)
+
+    def add_boolean(self, item_key, value, length=0, offset=None, tree=None):
+        '''
+        @summary: Add a FT_BOOLEAN to a proto_tree.
+        @param item_key: The key of the item in the items_dict
+        @param value: data to display
+        @param length: The number of bytes that'll be marked when selecting the item. The packet's offset is not advanced. (default: 0)
+        @param offset: The beginning offset for the marked bytes. If set to None, offset=self.offset. (default: None)
+        @param tree: the tree to append this item to (default: parent)
+        @return: the newly created item
+        '''
+        tree = tree or self.p_new_tree
+        if offset is None:
+            offset = self.offset
+        return self._cal.wslib.proto_tree_add_boolean(tree, self._items_dict[item_key]._index, self.p_new_tvb, offset, length, value)
+
     def set_column_text(self, col_id, text):
         '''
         @summary: Sets a column's text.
