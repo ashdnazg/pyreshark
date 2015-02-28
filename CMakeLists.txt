@@ -43,18 +43,42 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-register_dissector_files(plugin.c
-    plugin
-    ${DISSECTOR_SRC}
+# register_dissector_files(plugin.c
+    # plugin
+    # ${DISSECTOR_SRC}
+# )
+
+ADD_CUSTOM_COMMAND(
+    OUTPUT python/cal/ws_consts.py
+    COMMAND ${PYTHON_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/generate_ws_consts.py 
+      python/cal/ws_consts.py
+    DEPENDS
+      ${CMAKE_CURRENT_SOURCE_DIR}/generate_ws_consts.py
+)
+
+ADD_CUSTOM_COMMAND(
+    OUTPUT python/cal/ws_types.py
+    COMMAND ${CMAKE_COMMAND} -E copy
+     ${CMAKE_CURRENT_SOURCE_DIR}/templates/ws_types.py.${CPACK_PACKAGE_VERSION_MAJOR}_${CPACK_PACKAGE_VERSION_MINOR}
+     python/cal/ws_types.py
 )
 
 add_library(pyreshark ${LINK_MODE_MODULE}
     ${PLUGIN_FILES}
 )
+
 set_target_properties(pyreshark PROPERTIES PREFIX "")
 set_target_properties(pyreshark PROPERTIES LINK_FLAGS "${WS_LINK_FLAGS}")
 
 target_link_libraries(pyreshark epan)
+
+add_custom_target(
+    pyresharkpython ALL
+    DEPENDS
+	  python/cal/ws_types.py
+      python/cal/ws_consts.py
+)
 
 install(TARGETS pyreshark
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/@CPACK_PACKAGE_NAME@/plugins/${CPACK_PACKAGE_VERSION} NAMELINK_SKIP
@@ -62,3 +86,9 @@ install(TARGETS pyreshark
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/@CPACK_PACKAGE_NAME@/plugins/${CPACK_PACKAGE_VERSION}
 )
 
+install(DIRECTORY
+      python
+      ${CMAKE_CURRENT_BINARY_DIR}/python
+    DESTINATION
+      ${CMAKE_INSTALL_DATADIR}/${CPACK_PACKAGE_NAME}
+)
