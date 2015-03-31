@@ -44,7 +44,7 @@ Currently the plugin was tested on win32, win64 and some linux distro's.
 
 Win32/64 Instructions:
 
-    1. Get Wireshark's source.
+    1. Get Wireshark's source. (version 1.12 or 1.10 is required)
     2. Build Wireshark.
     3. Get pyreshark's source through hg clone.
     4. Place pyreshark's source in the plugins dir of Wireshark's source.
